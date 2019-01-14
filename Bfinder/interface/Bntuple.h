@@ -5,7 +5,7 @@
 
 class BntupleBranches
 {//{{{
- public:
+public:
   float tk1mass[7] = {KAON_MASS, PION_MASS, PION_MASS,   KAON_MASS,  KAON_MASS,  KAON_MASS, PION_MASS};
   float tk2mass[7] = {0,         0,         PION_MASS,   PION_MASS,  PION_MASS,  KAON_MASS, PION_MASS};
   float midmass[7] = {0,         0,         KSHORT_MASS, KSTAR_MASS, KSTAR_MASS, PHI_MASS,  0};
@@ -616,13 +616,12 @@ class BntupleBranches
     nt->Branch("Gtk2phi",Gtk2phi,"Gtk2phi[Gsize]/F");
   }
   
-  void makeNtuple(int ifchannel[], bool REAL, bool skim, EvtInfoBranches *EvtInfo, VtxInfoBranches *VtxInfo, MuonInfoBranches *MuonInfo, TrackInfoBranches *TrackInfo, BInfoBranches *BInfo, GenInfoBranches *GenInfo, TTree* nt0, TTree* nt1, TTree* nt2, TTree* nt3, TTree* nt5, TTree* nt6, TTree* nt7)
+  void makeNtuple(int ifchannel[], int Btypesize[], bool REAL, bool skim, EvtInfoBranches *EvtInfo, VtxInfoBranches *VtxInfo, MuonInfoBranches *MuonInfo, TrackInfoBranches *TrackInfo, BInfoBranches *BInfo, GenInfoBranches *GenInfo, TTree* nt0, TTree* nt1, TTree* nt2, TTree* nt3, TTree* nt5, TTree* nt6, TTree* nt7)
   {//{{{
     TVector3* bP = new TVector3;
     TVector3* bVtx = new TVector3;
     TLorentzVector* b4P = new TLorentzVector;
     fillTreeEvt(EvtInfo);
-    int Btypesize[8]={0,0,0,0,0,0,0,0};
     for(int t=0;t<7;t++)
       {
         int tidx = t-1;
@@ -639,9 +638,6 @@ class BntupleBranches
                 if(skim)
                   {
                     //if(BInfo->pt[j]<3.) continue;
-                    //if(BInfo->pt[j]<10.) continue;
-                    if(!( (BInfo->pt[j] > 7. && BInfo->pt[j] < 10. && BInfo->svpvDistance[j]/BInfo->svpvDisErr[j] > 5.5) || (BInfo->pt[j] > 10. && BInfo->svpvDistance[j]/BInfo->svpvDisErr[j] > 3.5) )) continue;
-                    if(BInfo->mass[j]<5. || BInfo->mass[j]>6.) continue;
                   }
                 if(BInfo->type[j]==(t+1))
                   {
@@ -649,6 +645,7 @@ class BntupleBranches
                     Btypesize[tidx]++;
                   }
               }
+            
             if(t==0)      nt0->Fill();
             else if(t==1) nt1->Fill();
             else if(t==2) nt2->Fill();
@@ -681,7 +678,9 @@ class BntupleBranches
     Gsize = 0;
     for(int j=0;j<GenInfo->size;j++)
       {
-        if((TMath::Abs(GenInfo->pdgId[j])!=BPLUS_PDGID&&TMath::Abs(GenInfo->pdgId[j])!=BZERO_PDGID&&TMath::Abs(GenInfo->pdgId[j])!=BSUBS_PDGID&&TMath::Abs(GenInfo->pdgId[j])!=JPSI_PDGID) && gskim) continue;
+        if((TMath::Abs(GenInfo->pdgId[j])!=BPLUS_PDGID && TMath::Abs(GenInfo->pdgId[j])!=BZERO_PDGID && TMath::Abs(GenInfo->pdgId[j])!=BSUBS_PDGID &&
+            TMath::Abs(GenInfo->pdgId[j])!=CHIC1_PDGID && TMath::Abs(GenInfo->pdgId[j])!=PSI2S_PDGID &&
+            TMath::Abs(GenInfo->pdgId[j])!=JPSI_PDGID) && gskim) continue;
         Gsize = gsize+1;
         Gpt[gsize] = GenInfo->pt[j];
         Geta[gsize] = GenInfo->eta[j];
@@ -1223,6 +1222,13 @@ class BntupleBranches
             tk1Id = 321;//K+
             tk2Id = 321;//K-
           }
+        if(BInfo->type[j]==7)
+          {
+            BId = 20443;//X3872
+            MId = 113;//rho
+            tk1Id = 211;//pi+
+            tk2Id = 211;//pi-
+          }
 
         int twoTks,kStar,flagkstar=0;
         if(BInfo->type[j]==1 || BInfo->type[j]==2) twoTks=0;
@@ -1265,11 +1271,20 @@ class BntupleBranches
                             mGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
                           }
                       }
+                    if(BInfo->type[j]==7 && level < 3)
+                      {
+                        mGenIdxTk1=0;
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==100443)
+                          {
+                            level = 3;
+                            bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
+                          }
+                      }
                   }
               }
             Bgen[typesize]=level;
           }
-        
+              
         //tk2
         if(!twoTks)//one trk channel
           {
@@ -1299,6 +1314,15 @@ class BntupleBranches
                                   }
                               }
                             mGenIdxTk2 = GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]];
+                          }
+                        if(BInfo->type[j]==7 && level < 3)
+                          {
+                            mGenIdxTk2 = 0;
+                            if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==100443)
+                              {
+                                level = 3;
+                                bGenIdxTk2 = GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]];
+                              }
                           }
                       }
                   }
@@ -1745,9 +1769,17 @@ class BntupleBranches
             tk2Id = -321;//K-
             twoTks = 1;
           }
+        if(Btype==7)
+          {
+            BId = 20443;//X3872
+            MId = 113;//rho
+            tk1Id = 211;//pi+
+            tk2Id = -211;//pi-
+            twoTks = 1;
+          }
         
         int flag=0;
-        if (abs(GenInfo->pdgId[j])==BId&&GenInfo->nDa[j]==2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
+        if(abs(GenInfo->pdgId[j])==BId&&GenInfo->nDa[j]==2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
           {
             if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
               {
@@ -1773,7 +1805,27 @@ class BntupleBranches
                   }
               }
           }
+        if(Btype==7 && flag==0)
+          {
+            if((abs(GenInfo->pdgId[j])==20443 || abs(GenInfo->pdgId[j])==100443)&&GenInfo->nDa[j]==3&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1&&GenInfo->da3[j]!=-1)
+              {
+                if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
+                  {
+                    if(GenInfo->da1[GenInfo->da1[j]]!=-1&&GenInfo->da2[GenInfo->da1[j]]!=-1)
+                      {
+                        if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[j]]])==13&&abs(GenInfo->pdgId[GenInfo->da2[GenInfo->da1[j]]])==13)
+                          {
+                            if(abs(GenInfo->pdgId[GenInfo->da2[j]])==abs(tk1Id) && abs(GenInfo->pdgId[GenInfo->da3[j]])==abs(tk2Id))
+                              {
+                                flag++;
+                              }
+                          }
+                      }
+                  }
+              }
+          }
         return flag;
+
       }
 
   }//}}}

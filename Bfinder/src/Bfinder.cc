@@ -429,9 +429,11 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     input_tracks = *tks;
     try{
         const reco::GenParticle* genMuonPtr[MAX_MUON];
-        memset(genMuonPtr,0x00,MAX_MUON);
+        // memset(genMuonPtr,0x00,MAX_MUON);
+        memset(genMuonPtr,0x00,MAX_MUON*sizeof(genMuonPtr[0]));
         const reco::GenParticle* genTrackPtr[MAX_TRACK];
-        memset(genTrackPtr,0x00,MAX_GEN);
+        // memset(genTrackPtr,0x00,MAX_GEN);
+        memset(genTrackPtr,0x00,MAX_GEN*sizeof(genTrackPtr[0]));
         //standard check for validity of input data
         if (input_muons.size() == 0){
             if (printInfo_) std::cout << "There's no muon : " << iEvent.id() << std::endl;
@@ -990,7 +992,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                             // RECONSTRUCTION: J/psi + phi
                             //////////////////////////////////////////////////////////////////////////
                             
-                            TkTk_window = 0.1;
+                            TkTk_window = 0.15;
                             if(Bchannel_[5] == 1){
                                 BranchOut2MuX_XtoTkTk(
                                     BInfo,
@@ -1177,7 +1179,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             std::vector<const reco::Candidate *> sel_cands;
             for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
                 it_gen != gens->end(); it_gen++){
-                if (it_gen->status() > 2 && it_gen->status() != 8) continue;//only status 1, 2, 8(simulated)
+                if (it_gen->status() > 2 && it_gen->status() != 8 && it_gen->status() != 91) continue;//only status 1, 2, 8(simulated)
                 if(GenInfo.size >= MAX_GEN){
                     fprintf(stderr,"ERROR: number of gens exceeds the size of array.\n");
                     break;;
@@ -1191,7 +1193,6 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     abs(it_gen->pdgId()) == 511 ||//B_0
                     abs(it_gen->pdgId()) == 521 ||//B_+-
                     abs(it_gen->pdgId()) == 531 ||//B_s
-                    abs(it_gen->pdgId()) == 130 ||//KL
                     //abs(it_gen->pdgId()) == 311 ||//K0
                     //abs(it_gen->pdgId()) == 321 ||//K+
                     //abs(it_gen->pdgId()) == 310 ||//KS
@@ -1200,6 +1201,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     //abs(it_gen->pdgId()) == 333 ||//phi(1020)
                     it_gen->pdgId() == 443      ||//Jpsi
                     it_gen->pdgId() == 100443   ||//Psi(2S)
+                    it_gen->pdgId() == 20443   ||//chi_c1(1P)
                     it_gen->pdgId() == 553      ||//Upsilon
                     it_gen->pdgId() == 100553     //Upsilon(2S)
                    ) isGenSignal = true;//b, c, s mesons
@@ -1209,6 +1211,8 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 if (
                     abs(int(it_gen->pdgId()/100) % 100) == 3  ||//s menson
                     abs(it_gen->pdgId()) == 111 || //pi0
+                    abs(it_gen->pdgId()) == 113 ||//rho0
+                    abs(it_gen->pdgId()) == 130 ||//KL
                     abs(it_gen->pdgId()) == 211 //pi+
                     ){
                     reco::GenParticle _deRef = (*it_gen);
@@ -1318,7 +1322,8 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         ifchannel[6] = 1; //jpsi+pi pi <= psi', X(3872), Bs->J/psi f0
         ifchannel[7] = 1; //inclusive jpsi
         bool REAL = ((!iEvent.isRealData() && RunOnMC_) ? false:true);
-        Bntuple->makeNtuple(ifchannel, REAL, doBntupleSkim_, &EvtInfo, &VtxInfo, &MuonInfo, &TrackInfo, &BInfo, &GenInfo, nt0, nt1, nt2, nt3, nt5, nt6, nt7);
+        int Btypesize[8]={0,0,0,0,0,0,0,0};
+        Bntuple->makeNtuple(ifchannel, Btypesize, REAL, doBntupleSkim_, &EvtInfo, &VtxInfo, &MuonInfo, &TrackInfo, &BInfo, &GenInfo, nt0, nt1, nt2, nt3, nt5, nt6, nt7);
         if(!REAL) Bntuple->fillGenTree(ntGen, &GenInfo);
     }
 }
