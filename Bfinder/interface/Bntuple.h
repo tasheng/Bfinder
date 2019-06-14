@@ -215,6 +215,7 @@ public:
   float     Bgen[MAX_XB];
   int       BgenIndex[MAX_XB];
   float     Bgenpt[MAX_XB];
+  int       BgencollisionId[MAX_XB];
   float     Bgeneta[MAX_XB];
   float     Bgenphi[MAX_XB];
   float     Bgeny[MAX_XB];
@@ -309,6 +310,7 @@ public:
   float    Jgen[MAX_XB];
   int      JgenIndex[MAX_XB];
   float    Jgenpt[MAX_XB];
+  int      JgencollisionId[MAX_XB];
   float    Jgeneta[MAX_XB];
   float    Jgenphi[MAX_XB];
   float    Jgeny[MAX_XB];
@@ -424,6 +426,7 @@ public:
         nt->Branch("Jgen",Jgen,"Jgen[Jsize]/F");
         nt->Branch("JgenIndex",JgenIndex,"JgenIndex[Jsize]/I");
         nt->Branch("Jgenpt",Jgenpt,"Jgenpt[Jsize]/F");
+        nt->Branch("JgencollisionId",JgencollisionId,"JgencollisionId[Jsize]/I");
         nt->Branch("Jgeny",Jgeny,"Jgeny[Jsize]/F");
         nt->Branch("Jgeneta",Jgeneta,"Jgeneta[Jsize]/F");
         nt->Branch("Jgenphi",Jgenphi,"Jgenphi[Jsize]/F");
@@ -604,6 +607,7 @@ public:
         nt->Branch("Bgen",Bgen,"Bgen[Bsize]/F");
         nt->Branch("BgenIndex",BgenIndex,"BgenIndex[Bsize]/I");
         nt->Branch("Bgenpt",Bgenpt,"Bgenpt[Bsize]/F");
+        nt->Branch("BgencollisionId",BgencollisionId,"BgencollisionId[Bsize]/I");
         nt->Branch("Bgeny",Bgeny,"Bgeny[Bsize]/F");
         nt->Branch("Bgeneta",Bgeneta,"Bgeneta[Bsize]/F");
         nt->Branch("Bgenphi",Bgenphi,"Bgenphi[Bsize]/F");
@@ -1269,6 +1273,7 @@ public:
         Bgen[typesize] = 0;
         BgenIndex[typesize] = -1;
         Bgenpt[typesize] = -1;
+        BgencollisionId[typesize] = -1;
         Bgeneta[typesize] = -20;
         Bgenphi[typesize] = -20;
         Bgeny[typesize] = -1;
@@ -1589,6 +1594,7 @@ public:
         if(Bgen[typesize]==23333 || Bgen[typesize]==41000)
           {
             Bgenpt[typesize] = GenInfo->pt[tgenIndex];
+            BgencollisionId[typesize] = GenInfo->collisionId[tgenIndex];
             Bgeneta[typesize] = GenInfo->eta[tgenIndex];
             Bgenphi[typesize] = GenInfo->phi[tgenIndex];
             b4P->SetXYZM(GenInfo->pt[tgenIndex]*cos(GenInfo->phi[tgenIndex]),
@@ -1719,6 +1725,7 @@ public:
         Jgen[typesize]+=3300;
         JgenIndex[typesize] = -1;
         Jgenpt[typesize] = -1;
+        JgencollisionId[typesize] = -1;
         Jgeneta[typesize] = -20;
         Jgenphi[typesize] = -20;
         Jgeny[typesize] = -1;
@@ -1796,6 +1803,7 @@ public:
           {
             int tgenIndex = JgenIndex[typesize];
             Jgenpt[typesize] = GenInfo->pt[tgenIndex];
+            JgencollisionId[typesize] = GenInfo->collisionId[tgenIndex];
             Jgeneta[typesize] = GenInfo->eta[tgenIndex];
             Jgenphi[typesize] = GenInfo->phi[tgenIndex];
             b4P->SetXYZM(GenInfo->pt[tgenIndex]*cos(GenInfo->phi[tgenIndex]),
