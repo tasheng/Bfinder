@@ -214,6 +214,8 @@ public:
   //BInfo.genInfo
   float     Bgen[MAX_XB];
   int       BgenIndex[MAX_XB];
+  int       BgenpdgId[MAX_XB];
+  float     Bgenmass[MAX_XB];
   float     Bgenpt[MAX_XB];
   int       BgencollisionId[MAX_XB];
   float     Bgeneta[MAX_XB];
@@ -606,6 +608,8 @@ public:
         //BInfo.genInfo
         nt->Branch("Bgen",Bgen,"Bgen[Bsize]/F");
         nt->Branch("BgenIndex",BgenIndex,"BgenIndex[Bsize]/I");
+        nt->Branch("BgenpdgId",BgenpdgId,"BgenpdgId[Bsize]/I");
+        nt->Branch("Bgenmass",Bgenmass,"Bgenmass[Bsize]/F");
         nt->Branch("Bgenpt",Bgenpt,"Bgenpt[Bsize]/F");
         nt->Branch("BgencollisionId",BgencollisionId,"BgencollisionId[Bsize]/I");
         nt->Branch("Bgeny",Bgeny,"Bgeny[Bsize]/F");
@@ -1272,6 +1276,8 @@ public:
       {
         Bgen[typesize] = 0;
         BgenIndex[typesize] = -1;
+        BgenpdgId[typesize] = 0;
+        Bgenmass[typesize] = -1;
         Bgenpt[typesize] = -1;
         BgencollisionId[typesize] = -1;
         Bgeneta[typesize] = -20;
@@ -1594,6 +1600,8 @@ public:
         if(Bgen[typesize]==23333 || Bgen[typesize]==41000)
           {
             Bgenpt[typesize] = GenInfo->pt[tgenIndex];
+            BgenpdgId[typesize] = GenInfo->pdgId[tgenIndex];
+            Bgenmass[typesize] = GenInfo->mass[tgenIndex];
             BgencollisionId[typesize] = GenInfo->collisionId[tgenIndex];
             Bgeneta[typesize] = GenInfo->eta[tgenIndex];
             Bgenphi[typesize] = GenInfo->phi[tgenIndex];
