@@ -100,6 +100,7 @@
 #define DELTA1232PLUSPLUS_PDGID 2224
 #define LAMBDA1520_PDGID  3124
 #define CHIC1_PDGID 20443
+#define X_PDGID 9920443
 #define PSI2S_PDGID 100443
 
 
@@ -378,8 +379,8 @@ class VtxInfoBranches { //{{{
             root->Branch("MuonInfo.SoftMuID" ,SoftMuID, "MuonInfo.SoftMuID[MuonInfo.size]/O");
             root->Branch("MuonInfo.OptMuID" ,OptMuID, "MuonInfo.OptMuID[MuonInfo.size]/O");
 
-            root->Branch("MuonInfo.innerTrackQuality"    , innerTrackQuality    , "MuonInfo.innerTrackQuality[MuonInfo.size]/O"	);
-            root->Branch("MuonInfo.highPurity"    , highPurity    , "MuonInfo.highPurity[MuonInfo.size]/I"	);
+            root->Branch("MuonInfo.innerTrackQuality"    , innerTrackQuality    , "MuonInfo.innerTrackQuality[MuonInfo.size]/I"	);
+            root->Branch("MuonInfo.highPurity"    , highPurity    , "MuonInfo.highPurity[MuonInfo.size]/O"	);
             root->Branch("MuonInfo.normchi2"      , normchi2      , "MuonInfo.normchi2[MuonInfo.size]/F");
             root->Branch("MuonInfo.i_striphit"    , i_striphit    , "MuonInfo.i_striphit[MuonInfo.size]/I"	);
             root->Branch("MuonInfo.i_pixelhit"    , i_pixelhit    , "MuonInfo.i_pixelhit[MuonInfo.size]/I"	);

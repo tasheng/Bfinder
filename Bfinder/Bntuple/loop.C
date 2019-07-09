@@ -1,53 +1,42 @@
-using namespace std;
-
 #include "format.h"
 #include "Bntuple.h"
 #include "loop.h"
 
-Bool_t istest = false;
-int loop(TString infile="/data/twang/BfinderRun2/DoubleMu/BfinderData_pp_20151130/finder_pp_merged.root", 
-         TString outfile="test.root", 
-         Bool_t REAL=false, Bool_t isPbPb=false, Int_t startEntries=0, Int_t endEntries=-1,  Bool_t skim=true, Bool_t gskim=true, Bool_t checkMatching=true, Bool_t iseos=false, Bool_t SkimHLTtree=true)
+#include <string>
+#include <map>
+
+namespace xjjc
 {
-  if(istest)
-    {
-      infile="/store/group/phys_heavyions/HeavyFlavourRun2/BfinderRun2/MC_official/Pythia8_BuToJpsiK_Bpt0_Pthat15_TuneCUEP8M1/crab_BfinderMC_pp_Pythia8_BuToJpsiK_Bpt0_Pthat15_TuneCUEP8M1_20160816_bPt0jpsiPt0tkPt0p5_Bp/160816_214911/0000/finder_pp_5.root";
-      outfile="test.root";
-      REAL=false;
-      isPbPb=false;
-      skim=false;
-      checkMatching=true;
-      iseos=true;
-    }
+  void progressbar(int index_, int total_, int morespace_=0);
+  void progressbar_summary(int total_);
+}
 
-  cout<<endl;
-  if(REAL) cout<<"--- Processing - REAL DATA";
-  else cout<<"--- Processing - MC";
-  if(isPbPb) cout<<" - PbPb";
-  else cout<<" - pp";
-  cout<<endl;
+int loop(std::string inputname, std::string outputname, bool REAL, 
+         bool skim=false, int nevt = -1)
+{
+  std::cout<<std::endl;
+  std::cout<<"--- Processing "<<(REAL?"data":"MC")<<std::endl;
+  std::cout<<"input: "<<inputname<<std::endl;
+  std::cout<<"output: "<<outputname<<std::endl;
 
-  TString ifname;
-  if(iseos) ifname = Form("root://eoscms.cern.ch//eos/cms%s",infile.Data());
-  else ifname = infile;
-  TFile* f = TFile::Open(ifname);
-  TTree* root = (TTree*)f->Get("Bfinder/root");
-  TTree* hltroot = (TTree*)f->Get("hltanalysis/HltTree");
-  TTree* skimroot = (TTree*)f->Get("skimanalysis/HltTree");
-  TTree* hiroot = (TTree*)f->Get("hiEvtAnalyzer/HiTree");
+  std::cout<<"--- Reading input file"<<std::endl;
+  std::map<std::string, TTree*> trees, newtrees;
+  TFile* inf = TFile::Open(inputname.c_str());
+  TTree* root = (TTree*)inf->Get("Bfinder/root");
+  trees["hltanalysis"]   = (TTree*)inf->Get("hltanalysis/HltTree"); 
+  trees["hltobject"]     = (TTree*)inf->Get("hltobject/HLT_HIL3Mu0NHitQ10_L2Mu0_MAXdR3p5_M1to5_v");
+  trees["skimanalysis"]  = (TTree*)inf->Get("skimanalysis/HltTree");
+  trees["hiEvtAnalyzer"] = (TTree*)inf->Get("hiEvtAnalyzer/HiTree");
+  trees["HiForest"]      = (TTree*)inf->Get("HiForest/HiForestInfo");
+  trees["hltanalysis"]->SetBranchStatus("*", 0);
+  trees["hltanalysis"]->SetBranchStatus("HLT_HIL3Mu0NHitQ10_L2Mu0_MAXdR3p5_M1to5_v1*", 1);
 
-  BntupleBranches     *Bntuple = new BntupleBranches;
-  EvtInfoBranches     *EvtInfo = new EvtInfoBranches;
-  VtxInfoBranches     *VtxInfo = new VtxInfoBranches;
-  MuonInfoBranches    *MuonInfo = new MuonInfoBranches;
-  TrackInfoBranches   *TrackInfo = new TrackInfoBranches;
-  BInfoBranches       *BInfo = new BInfoBranches;
-  GenInfoBranches     *GenInfo = new GenInfoBranches;
-
-  if(SkimHLTtree) SetHlttreestatus(hltroot, isPbPb);
-  setHltBranch(hltroot);
-  setHiTreeBranch(hiroot);
-
+  EvtInfoBranches* EvtInfo = new EvtInfoBranches;
+  VtxInfoBranches* VtxInfo = new VtxInfoBranches;
+  MuonInfoBranches* MuonInfo = new MuonInfoBranches;
+  TrackInfoBranches* TrackInfo = new TrackInfoBranches;
+  BInfoBranches* BInfo = new BInfoBranches;
+  GenInfoBranches* GenInfo = new GenInfoBranches;
   EvtInfo->setbranchadd(root);
   VtxInfo->setbranchadd(root);
   MuonInfo->setbranchadd(root);
@@ -55,93 +44,129 @@ int loop(TString infile="/data/twang/BfinderRun2/DoubleMu/BfinderData_pp_2015113
   BInfo->setbranchadd(root);
   GenInfo->setbranchadd(root);
 
-  Long64_t nentries = root->GetEntries();
-  if(endEntries>nentries || endEntries == -1) endEntries = nentries;
-  TFile *outf = TFile::Open(Form("%s", outfile.Data()),"recreate");
+  int nentries = root->GetEntries();
+  if(nevt > 0 && nevt < nentries) { nentries = nevt; }
 
-  Int_t ifchannel[8];
-  ifchannel[0] = 1; //jpsi+Kp
-  ifchannel[1] = 1; //jpsi+pi
-  ifchannel[2] = 1; //jpsi+Ks(pi+,pi-)
-  ifchannel[3] = 1; //jpsi+K*(K+,pi-)
-  ifchannel[4] = 1; //jpsi+K*(K-,pi+)
-  ifchannel[5] = 1; //jpsi+phi(K+,K-)
-  ifchannel[6] = 1; //jpsi+pi pi <= psi', X(3872), Bs->J/psi f0
-  ifchannel[7] = 1; //inclusive jpsi
-  
-  cout<<"--- Building trees"<<endl;
-  TTree* nt0 = new TTree("ntKp","");      Bntuple->buildBranch(nt0);
-  TTree* nt1 = new TTree("ntpi","");      Bntuple->buildBranch(nt1);
-  TTree* nt2 = new TTree("ntKs","");      Bntuple->buildBranch(nt2);
-  TTree* nt3 = new TTree("ntKstar","");   Bntuple->buildBranch(nt3);
-  TTree* nt5 = new TTree("ntphi","");     Bntuple->buildBranch(nt5);
-  TTree* nt6 = new TTree("ntmix","");     Bntuple->buildBranch(nt6);
-  TTree* nt7 = new TTree("ntJpsi","");    Bntuple->buildBranch(nt7,true);
-  TTree* ntGen = new TTree("ntGen","");   Bntuple->buildGenBranch(ntGen);
-  TTree* ntHlt = hltroot->CloneTree(0);
-  ntHlt->SetName("ntHlt");
-  TTree* ntSkim = skimroot->CloneTree(0);
-  ntSkim->SetName("ntSkim");
-  TTree* ntHi = hiroot->CloneTree(0);
-  ntHi->SetName("ntHi");
-  cout<<"--- Building trees finished"<<endl;
-
-  cout<<"--- Check the number of events for four trees"<<endl;
-  cout<<root->GetEntries()<<" "<<hltroot->GetEntries()<<" "<<hiroot->GetEntries();
-  cout<<" "<<skimroot->GetEntries()<<endl;
-  cout<<endl;
-
-  cout<<"--- Processing events"<<endl;
-  for(Int_t i=startEntries;i<endEntries;i++)
+  std::cout<<"--- Building output"<<std::endl;
+  std::map<std::string, TDirectory*> dirs;
+  TFile* outf = TFile::Open(outputname.c_str(),"recreate");
+  outf->cd();
+  for(auto& tt : trees)
     {
-      root->GetEntry(i);
-      hltroot->GetEntry(i);
-      skimroot->GetEntry(i);
-      hiroot->GetEntry(i);
-      
-      if(i%100000==0) cout<<setw(7)<<i<<" / "<<endEntries<<endl;
-      if(checkMatching)
-	{
-          if(((int)Bf_HLT_Event!=EvtInfo->EvtNo||(int)Bf_HLT_Run!=EvtInfo->RunNo||(int)Bf_HLT_LumiBlock!=EvtInfo->LumiNo) || 
-             ((int)Bf_HiTree_Evt!=EvtInfo->EvtNo||(int)Bf_HiTree_Run!=EvtInfo->RunNo||(int)Bf_HiTree_Lumi!=EvtInfo->LumiNo))
-            {
-              cout<<"Error: not matched "<<i<<" | (Hlt,Bfr,Hi) | ";
-              cout<<"EvtNo("<<Bf_HLT_Event<<","<<EvtInfo->EvtNo<<","<<Bf_HiTree_Evt<<") ";
-              cout<<"RunNo("<<Bf_HLT_Run<<","<<EvtInfo->RunNo<<","<<Bf_HiTree_Run<<") ";
-              cout<<"LumiNo("<<Bf_HLT_LumiBlock<<","<<EvtInfo->LumiNo<<","<<Bf_HiTree_Lumi<<")"<<endl;
-              continue;
-            }
-	}
-      ntHlt->Fill();
-      ntSkim->Fill();
-      ntHi->Fill();
-      Bntuple->makeNtuple(ifchannel, REAL, skim, EvtInfo, VtxInfo, MuonInfo, TrackInfo, BInfo, GenInfo, nt0, nt1, nt2, nt3, nt5, nt6, nt7);
-      if(!REAL) Bntuple->fillGenTree(ntGen, GenInfo, gskim);
+      std::string dirname = tt.first;
+      if(!gDirectory->cd(dirname.c_str())) 
+        {
+          dirs[dirname] = outf->mkdir(dirname.c_str());
+          dirs[dirname]->cd();
+        }
+      newtrees[dirname] = (TTree*)tt.second->CloneTree(0);
+      outf->cd();
     }
-  outf->Write();
-  cout<<"--- Writing finished"<<endl;
+  TDirectory* dir_root = outf->mkdir("Bfinder");
+  dir_root->cd();
+
+  const int nchannel = 8;
+  Int_t ifchannel[nchannel];
+  ifchannel[0] = 0; // jpsi+Kp
+  ifchannel[1] = 0; // jpsi+pi
+  ifchannel[2] = 0; // jpsi+Ks(pi+,pi-)
+  ifchannel[3] = 0; // jpsi+K*(K+,pi-)
+  ifchannel[4] = 0; // jpsi+K*(K-,pi+)
+  ifchannel[5] = 0; // jpsi+phi(K+,K-)
+  ifchannel[6] = 1; // jpsi+pi pi <= psi', X(3872), Bs->J/psi f0
+  ifchannel[7] = 1; // inclusive jpsi
+  
+  BntupleBranches* Bntuple = new BntupleBranches;
+  std::map<std::string, TTree*> nts;
+  nts["nt0"] = new TTree("ntKp","");      Bntuple->buildBranch(nts["nt0"]);
+  nts["nt1"] = new TTree("ntpi","");      Bntuple->buildBranch(nts["nt1"]);
+  nts["nt2"] = new TTree("ntKs","");      Bntuple->buildBranch(nts["nt2"]);
+  nts["nt3"] = new TTree("ntKstar","");   Bntuple->buildBranch(nts["nt3"]);
+  nts["nt5"] = new TTree("ntphi","");     Bntuple->buildBranch(nts["nt5"]);
+  nts["nt6"] = new TTree("ntmix","");     Bntuple->buildBranch(nts["nt6"]);
+  nts["nt7"] = new TTree("ntJpsi","");    Bntuple->buildBranch(nts["nt7"], true);
+  nts["ntGen"] = new TTree("ntGen","");   Bntuple->buildGenBranch(nts["ntGen"]);
+
+  std::cout<<"--- Building trees finished"<<std::endl;
+
+  std::cout<<"--- Check the number of events for four trees"<<std::endl;
+  std::map<std::string, int> treenentries;
+  for(auto& tt : trees) { treenentries[(tt.first).c_str()] = tt.second->GetEntries(); std::cout<<treenentries[(tt.first).c_str()]<<" "; } 
+  std::cout<<std::endl;
+
+  std::cout<<"--- Processing events"<<std::endl;
+  for(Int_t i=0; i<nentries; i++)
+    {
+      if(i%100==0) xjjc::progressbar(i, nentries);
+
+      root->GetEntry(i);
+      for(auto& tt : trees)
+        { if(i < treenentries[tt.first]) { tt.second->GetEntry(i); } }
+      
+      for(auto& tt : newtrees)
+        {
+          if(i >= treenentries[tt.first]) continue;
+          tt.second->Fill();
+        }
+      int Btypesize[nchannel]={0, 0, 0, 0, 0, 0, 0, 0};
+      Bntuple->makeNtuple(ifchannel, Btypesize, REAL, skim, EvtInfo, VtxInfo, MuonInfo, TrackInfo, BInfo, GenInfo, nts["nt0"], nts["nt1"], nts["nt2"], nts["nt3"], nts["nt5"], nts["nt6"], nts["nt7"]);
+      if(!REAL) Bntuple->fillGenTree(nts["ntGen"], GenInfo);
+    }
+  xjjc::progressbar_summary(nentries);
+
+  for(auto& tt : dirs)
+    {
+      tt.second->cd();
+      newtrees[tt.first]->Write();
+      outf->cd();
+    }
+  dir_root->cd();
+  for(auto& nt : nts)
+    {
+      nt.second->Write();
+    }
+  outf->cd();
+  
+  std::cout<<"--- Writing finished"<<std::endl;
   outf->Close();
 
-  cout<<"--- In/Output files"<<endl;
-  cout<<ifname<<endl;
-  cout<<outfile<<endl;
-  cout<<endl;
+  std::cout<<"--- In/Output files"<<std::endl;
+  std::cout<<inputname<<std::endl;
+  std::cout<<outputname<<std::endl;
+  std::cout<<std::endl;
 
   return 0;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-  if(argc==3)
+  if(argc==6)
     {
-      loop(argv[1], argv[2]);
+      return loop(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
     }
-  else
+  else if(argc==5)
     {
-      std::cout << "Usage: mergeForest <input_collection> <output_file>" << std::endl;
-      return 1;
+      return loop(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]));
     }
-  return 0;
+  else if(argc==4)
+    {
+      return loop(argv[1], argv[2], atoi(argv[3]));
+    }
+  std::cout<<__FUNCTION__<< ": error: invalid arguments."<<std::endl;
+  return 1;
+
 }
 
 
+void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
+{
+  if(total_ > 0)
+    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<(int)(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+  else
+    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+}
+
+void xjjc::progressbar_summary(int total_)
+{
+  std::cout<<std::endl<<"  Processed "<<"\033[1;31m"<<total_<<"\033[0m event(s)."<<std::endl;
+}

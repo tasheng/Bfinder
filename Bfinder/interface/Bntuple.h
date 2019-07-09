@@ -42,6 +42,7 @@ public:
   //BInfo
   int       Bindex[MAX_XB];
   int       Btype[MAX_XB];
+  bool      Bprepref[MAX_XB];
   float     Bmass[MAX_XB];
   float     Bmass_unfitted[MAX_XB];
   float     Bpt[MAX_XB];
@@ -440,6 +441,7 @@ public:
         nt->Branch("Bindex",Bindex,"Bindex[Bsize]/I");
         nt->Branch("Btype",Btype,"Btype[Bsize]/I");
         nt->Branch("Bmass",Bmass,"Bmass[Bsize]/F");
+        nt->Branch("Bprepref",Bprepref,"Bprepref[Bsize]/O");
         nt->Branch("Bmass_unfitted",Bmass_unfitted,"Bmass_unfitted[Bsize]/F");
         nt->Branch("Bpt",Bpt,"Bpt[Bsize]/F");
         nt->Branch("Beta",Beta,"Beta[Bsize]/F");
@@ -632,9 +634,11 @@ public:
   float   Geta[MAX_GEN];
   float   Gphi[MAX_GEN];
   float   Gpt[MAX_GEN];
+  float   Gmass[MAX_GEN];
   int     GpdgId[MAX_GEN];
   int     GcollisionId[MAX_GEN];
   int     GisSignal[MAX_GEN];
+  int     Gsubtype[MAX_GEN];
   float   Gmu1pt[MAX_GEN];
   float   Gmu2pt[MAX_GEN];
   float   Gmu1p[MAX_GEN];
@@ -658,8 +662,10 @@ public:
     nt->Branch("Gphi",Gphi,"Gphi[Gsize]/F");
     nt->Branch("Gpt",Gpt,"Gpt[Gsize]/F");
     nt->Branch("GpdgId",GpdgId,"GpdgId[Gsize]/I");
+    nt->Branch("Gmass",Gmass,"Gmass[Gsize]/F");
     nt->Branch("GcollisionId",GcollisionId,"GcollisionId[Gsize]/I");
     nt->Branch("GisSignal",GisSignal,"GisSignal[Gsize]/I");
+    nt->Branch("Gsubtype",Gsubtype,"Gsubtype[Gsize]/I");
     nt->Branch("Gmu1eta",Gmu1eta,"Gmu1eta[Gsize]/F");
     nt->Branch("Gmu1phi",Gmu1phi,"Gmu1phi[Gsize]/F");
     nt->Branch("Gmu1pt",Gmu1pt,"Gmu1pt[Gsize]/F");
@@ -739,20 +745,22 @@ public:
     for(int j=0;j<GenInfo->size;j++)
       {
         if((TMath::Abs(GenInfo->pdgId[j])!=BPLUS_PDGID && TMath::Abs(GenInfo->pdgId[j])!=BZERO_PDGID && TMath::Abs(GenInfo->pdgId[j])!=BSUBS_PDGID &&
-            TMath::Abs(GenInfo->pdgId[j])!=CHIC1_PDGID && TMath::Abs(GenInfo->pdgId[j])!=PSI2S_PDGID &&
+            TMath::Abs(GenInfo->pdgId[j])!=CHIC1_PDGID && TMath::Abs(GenInfo->pdgId[j])!=PSI2S_PDGID && TMath::Abs(GenInfo->pdgId[j])!=X_PDGID &&
             TMath::Abs(GenInfo->pdgId[j])!=JPSI_PDGID) && gskim) continue;
         Gsize = gsize+1;
         Gpt[gsize] = GenInfo->pt[j];
         Geta[gsize] = GenInfo->eta[j];
         Gphi[gsize] = GenInfo->phi[j];
         GpdgId[gsize] = GenInfo->pdgId[j];
+        Gmass[gsize] = GenInfo->mass[j];
         GcollisionId[gsize] = GenInfo->collisionId[j];
         bGen->SetPtEtaPhiM(GenInfo->pt[j],GenInfo->eta[j],GenInfo->phi[j],GenInfo->mass[j]);
         Gy[gsize] = bGen->Rapidity();
+        Gsubtype[gsize] = 0;
         sigtype=0;
         for(gt=1;gt<10;gt++)
           {
-            if(signalGen(gt,j,GenInfo))
+            if(signalGen(gt,j,GenInfo,Gsubtype[gsize]))
               {
                 sigtype=gt;
                 break;
@@ -1270,6 +1278,14 @@ public:
                         tk1EK+tk2EK);
         BtktkmassKK[typesize] = b4P->Mag();
       }
+
+    Bprepref[typesize] = false;
+    if(TMath::Abs(Bmumumass[typesize]-3.096916) < 0.05 && TMath::Abs(Bujeta[typesize]) < 2.4 &&
+       (Bmu1SoftMuID[typesize] && Bmu2SoftMuID[typesize] && Bmu1isAcc[typesize] && Bmu2isAcc[typesize] && Bmu1isTriggered[typesize] && Bmu2isTriggered[typesize]) &&
+       Btrk1Pt[typesize] > 0.9 && Btrk2Pt[typesize] > 0.9 && TMath::Abs(Btrk1Eta[typesize]) < 2.4 && TMath::Abs(Btrk2Eta[typesize]) < 2.4 &&
+       Btrk1highPurity[typesize] && Btrk2highPurity[typesize] && (Btrk1PixelHit[typesize]+Btrk1StripHit[typesize]) >= 11 && (Btrk2PixelHit[typesize]+Btrk2StripHit[typesize]) >= 11 && TMath::Abs(Btrk1PtErr[typesize]/Btrk1Pt[typesize]) < 0.1 && TMath::Abs(Btrk2PtErr[typesize]/Btrk2Pt[typesize]) < 0.1 && (Btrk1Chi2ndf[typesize]/(Btrk1nStripLayer[typesize]+Btrk1nPixelLayer[typesize])) < 0.18 && (Btrk2Chi2ndf[typesize]/(Btrk2nStripLayer[typesize]+Btrk2nPixelLayer[typesize])) < 0.18 && 
+       TMath::Abs(By[typesize]) < 2.4 && Bchi2cl[typesize] > 0.1
+       ) Bprepref[typesize] = true;
     
     //gen info judgement
     if(!REAL)
@@ -1376,7 +1392,7 @@ public:
                             level = 2;
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==BId)
+                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==BId || (BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==9920443))
                                   {
                                     level = 3;
                                     bGenIdxTk1=GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]];
@@ -1421,7 +1437,7 @@ public:
                             level = 2;
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==BId)
+                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==BId || (BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==9920443))
                                   {
                                     level = 3;
                                     bGenIdxTk2 = GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]];
@@ -1445,6 +1461,7 @@ public:
           }
         
         //mu1
+        int murad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]>-1)
           {
             int level =0;
@@ -1460,7 +1477,7 @@ public:
                       {
                         //ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]];
                         int ujidx = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]];
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]]; }
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]]; murad++; }
                         level=2;
                         if(GenInfo->mo1[ujidx]>-1)
                           {
@@ -1470,11 +1487,12 @@ public:
                                 bGenIdxMu1=GenInfo->mo1[ujidx];
                                 flagkstar++;//=1
                               }
-                            else if(BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443)
+                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443))
                               {
                                 level = 3;
                                 bGenIdxMu1=GenInfo->mo1[ujidx];
                               }
+                            if(level==3 && murad) { level = 4; }
                           }
                       } 
                   }
@@ -1483,6 +1501,7 @@ public:
           }
         
         //mu2
+        murad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]>-1)
           {  
             int level =0;
@@ -1498,7 +1517,7 @@ public:
                       {
                         //ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]];
                         int ujidx = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]];
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]]; }
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]]; murad++; }
                         level = 2;
                         if(GenInfo->mo1[ujidx]>-1)
                           {
@@ -1508,11 +1527,12 @@ public:
                                 bGenIdxMu2=GenInfo->mo1[ujidx];
                                 flagkstar++;//=2
                               }
-                            else if(BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443)
+                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443))
                               {
                                 level = 3;
                                 bGenIdxMu2=GenInfo->mo1[ujidx];
                               }
+                            if(level==3 && murad) { level = 4; }
                           }
                       }
                   }
@@ -1606,7 +1626,7 @@ public:
           }//kstar End#############################################################################
         
         int tgenIndex=BgenIndex[typesize];
-        if(Bgen[typesize]==23333 || Bgen[typesize]==41000)
+        if(Bgen[typesize]==23333 || Bgen[typesize]==41000 || Bgen[typesize]==24433 || Bgen[typesize]==24333 || Bgen[typesize]==23433)
           {
             Bgenpt[typesize] = GenInfo->pt[tgenIndex];
             BgenpdgId[typesize] = GenInfo->pdgId[tgenIndex];
@@ -1751,6 +1771,7 @@ public:
         int ujGenIdxMu1=-1;
         int ujGenIdxMu2=-1;
 
+        int jmu1rad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]>-1)
           {
             int level =0;
@@ -1759,19 +1780,21 @@ public:
                 level=1;
                 if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]>-1)
                   {
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]==443)
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]])==13 && GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]>-1) { jmu1rad++; }
+                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]==443 || (jmu1rad && GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]]==443))
                       {
                         ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]];
+                        if(jmu1rad) ujGenIdxMu1 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]];
                         level = 3;
-                        if(GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]>-1)
+                        if(GenInfo->mo1[ujGenIdxMu1]>-1)
                           {
-                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]]);
+                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[ujGenIdxMu1]]);
                             bPDG /= 100;
                             bPDG = bPDG%10;
                             if(bPDG==5)
                               {
                                 level = 4;
-                                bGenIdxMu1 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]];
+                                bGenIdxMu1 = GenInfo->mo1[ujGenIdxMu1];
                               }
                           }
                       } 
@@ -1779,30 +1802,34 @@ public:
               }
             Jgen[typesize]+=(level);
           }
+
+        int jmu2rad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]>-1)
-          {  
+          {
             int level =0;
             if(abs(GenInfo->pdgId[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]])==13)
               {
-                level = 1;
+                level=1;
                 if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]>-1)
                   {
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]==443)
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]])==13 && GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]>-1) { jmu2rad++; }
+                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]==443 || (jmu2rad && GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]]==443))
                       {
                         ujGenIdxMu2 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]];
+                        if(jmu2rad) ujGenIdxMu2 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]];
                         level = 3;
-                        if(GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]>-1)
+                        if(GenInfo->mo1[ujGenIdxMu2]>-1)
                           {
-                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]]);
+                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[ujGenIdxMu2]]);
                             bPDG /= 100;
                             bPDG = bPDG%10;
                             if(bPDG==5)
                               {
                                 level = 4;
-                                bGenIdxMu2 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]];
+                                bGenIdxMu2 = GenInfo->mo1[ujGenIdxMu2];
                               }
                           }
-                      }
+                      } 
                   }
               }
             Jgen[typesize]+=(level*10);
@@ -1813,10 +1840,14 @@ public:
           {
             level = 2;
             JgenIndex[typesize] = ujGenIdxMu1;
-            if(Jgen[typesize]==3344 && bGenIdxMu1!=bGenIdxMu2) level = 1;
+            if((Jgen[typesize]==3344) && bGenIdxMu1!=bGenIdxMu2) level = 1;
           }
         Jgen[typesize]+=(level*10000);
-        if(Jgen[typesize]==23333 || Jgen[typesize]==23344)
+
+        if(jmu1rad && Jgen[typesize]>=23333) { Jgen[typesize]+=100; }
+        if(jmu2rad && Jgen[typesize]>=23333) { Jgen[typesize]+=1000; }
+
+        if(Jgen[typesize]>=23333)
           {
             int tgenIndex = JgenIndex[typesize];
             Jgenpt[typesize] = GenInfo->pt[tgenIndex];
@@ -1834,7 +1865,7 @@ public:
   }
 
   
-  bool signalGen(int Btype, int j, GenInfoBranches *GenInfo)
+  bool signalGen(int Btype, int j, GenInfoBranches *GenInfo, int &subtype)
   {//{{{
 
     if(Btype==8 || Btype==9)
@@ -1926,35 +1957,42 @@ public:
           }
         
         int flag=0;
-        if(abs(GenInfo->pdgId[j])==BId&&GenInfo->nDa[j]==2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
+        if(abs(GenInfo->pdgId[j])==BId || (Btype==7 && abs(GenInfo->pdgId[j])==9920443))
           {
-            if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
-              {
-                if(GenInfo->da1[GenInfo->da1[j]]!=-1&&GenInfo->da2[GenInfo->da1[j]]!=-1)
-                  {
-                    if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[j]]])==13&&abs(GenInfo->pdgId[GenInfo->da2[GenInfo->da1[j]]])==13)
-                      {
-                        if(!twoTks)
-                          {
-                            if(abs(GenInfo->pdgId[GenInfo->da2[j]])==tk1Id) flag++;
-                          }
-                        else
-                          {
-                            if (abs(GenInfo->pdgId[GenInfo->da2[j]])==MId) 
-                              {
-                                if(GenInfo->da1[GenInfo->da2[j]]!=-1 && GenInfo->da2[GenInfo->da2[j]]!=-1)
-                                  {
-                                    if(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[j]]]==tk1Id && GenInfo->pdgId[GenInfo->da2[GenInfo->da2[j]]]==tk2Id) flag++;
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
+           if(GenInfo->nDa[j]==2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
+             {
+               if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
+                 {
+                   if(GenInfo->da1[GenInfo->da1[j]]!=-1&&GenInfo->da2[GenInfo->da1[j]]!=-1)
+                     {
+                       if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[j]]])==13&&abs(GenInfo->pdgId[GenInfo->da2[GenInfo->da1[j]]])==13)
+                         {
+                           if(!twoTks)
+                             {
+                               if(abs(GenInfo->pdgId[GenInfo->da2[j]])==tk1Id) flag++;
+                             }
+                           else
+                             {
+                               if (abs(GenInfo->pdgId[GenInfo->da2[j]])==MId) 
+                                 {
+                                   if(GenInfo->da1[GenInfo->da2[j]]!=-1 && GenInfo->da2[GenInfo->da2[j]]!=-1)
+                                     {
+                                       if(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[j]]]==tk1Id && GenInfo->pdgId[GenInfo->da2[GenInfo->da2[j]]]==tk2Id) flag++;
+                                     }
+                                 }
+                             }
+                           if(GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]!=-1 && GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]!=-1)
+                             {
+                               if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]])==13 && abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]])==13) subtype = 1;
+                             }
+                         }
+                     }
+                 }
+             }
           }
         if(Btype==7 && flag==0)
           {
-            if((abs(GenInfo->pdgId[j])==20443 || abs(GenInfo->pdgId[j])==100443)&&GenInfo->nDa[j]==3&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1&&GenInfo->da3[j]!=-1)
+            if((abs(GenInfo->pdgId[j])==20443 || abs(GenInfo->pdgId[j])==100443 || abs(GenInfo->pdgId[j])==9920443)&&GenInfo->nDa[j]==3&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1&&GenInfo->da3[j]!=-1)
               {
                 if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
                   {
