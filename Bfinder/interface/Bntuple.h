@@ -198,6 +198,23 @@ public:
   bool      Btrk2highPurity[MAX_XB];
   int       Btrk1Quality[MAX_XB];
   int       Btrk2Quality[MAX_XB];
+
+  int       BtrkLH[MAX_XB];
+  float     BtrkLPt[MAX_XB];
+  float     BtrkHPt[MAX_XB];
+  float     BtrkLPhi[MAX_XB];
+  float     BtrkHPhi[MAX_XB];
+  float     BtrkLEta[MAX_XB];
+  float     BtrkHEta[MAX_XB];
+  float     BtrkLDxy1[MAX_XB];
+  float     BtrkHDxy1[MAX_XB];
+  float     BtrkLDxyError1[MAX_XB];
+  float     BtrkHDxyError1[MAX_XB];
+  float     BtrkLDz1[MAX_XB];
+  float     BtrkHDz1[MAX_XB];
+  float     BtrkLDzError1[MAX_XB];
+  float     BtrkHDzError1[MAX_XB];
+
   //BInfo.tktkInfo
   float     Btktkmass[MAX_XB];
   float     BtktkmassKK[MAX_XB];
@@ -520,7 +537,22 @@ public:
         nt->Branch("Btrk2highPurity",Btrk2highPurity,"Btrk2highPurity[Bsize]/O");
         nt->Branch("Btrk1Quality",Btrk1Quality,"Btrk1Quality[Bsize]/I");
         nt->Branch("Btrk2Quality",Btrk2Quality,"Btrk2Quality[Bsize]/I");
-        
+        nt->Branch("BtrkLH",BtrkLPt,"BtrkLH[Bsize]/I");
+        nt->Branch("BtrkLPt",BtrkLPt,"BtrkLPt[Bsize]/F");
+        nt->Branch("BtrkHPt",BtrkHPt,"BtrkHPt[Bsize]/F");
+        nt->Branch("BtrkLPhi",BtrkLPhi,"BtrkLPhi[Bsize]/F");
+        nt->Branch("BtrkHPhi",BtrkHPhi,"BtrkHPhi[Bsize]/F");
+        nt->Branch("BtrkLEta",BtrkLEta,"BtrkLEta[Bsize]/F");
+        nt->Branch("BtrkHEta",BtrkHEta,"BtrkHEta[Bsize]/F");
+        nt->Branch("BtrkLDxy1",BtrkLDxy1,"BtrkLDxy1[Bsize]/F");
+        nt->Branch("BtrkHDxy1",BtrkHDxy1,"BtrkHDxy1[Bsize]/F");
+        nt->Branch("BtrkLDxyError1",BtrkLDxyError1,"BtrkLDxyError1[Bsize]/F");
+        nt->Branch("BtrkHDxyError1",BtrkHDxyError1,"BtrkHDxyError1[Bsize]/F");
+        nt->Branch("BtrkLDz1",BtrkLDz1,"BtrkLDz1[Bsize]/F");
+        nt->Branch("BtrkHDz1",BtrkHDz1,"BtrkHDz1[Bsize]/F");
+        nt->Branch("BtrkLDzError1",BtrkLDzError1,"BtrkLDzError1[Bsize]/F");
+        nt->Branch("BtrkHDzError1",BtrkHDzError1,"BtrkHDzError1[Bsize]/F");
+
         //BInfo.tktkInfo
         nt->Branch("Btktkmass",Btktkmass,"Btktkmass[Bsize]/F");
         nt->Branch("BtktkmassKK",BtktkmassKK,"BtktkmassKK[Bsize]/F");
@@ -703,7 +735,21 @@ public:
               {
                 if(skim)
                   {
-                    //if(BInfo->pt[j]<3.) continue;
+                    if(BInfo->pt[j] < 10.) continue;
+                    if(!(
+                         MuonInfo->SoftMuID[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]] && 
+                         MuonInfo->SoftMuID[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]] &&
+                         MuonInfo->isTriggered[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]*MuonInfo->MuTrgMatchFilterSize+0] && 
+                         MuonInfo->isTriggered[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]*MuonInfo->MuTrgMatchFilterSize+0] && 
+                         TrackInfo->highPurity[BInfo->rftk1_index[j]] && 
+                         TrackInfo->highPurity[BInfo->rftk2_index[j]] &&
+                         (TrackInfo->pixelhit[BInfo->rftk1_index[j]]+TrackInfo->striphit[BInfo->rftk1_index[j]]) >= 11 && 
+                         (TrackInfo->pixelhit[BInfo->rftk2_index[j]]+TrackInfo->striphit[BInfo->rftk2_index[j]]) >= 11 &&
+                         TMath::Abs(TrackInfo->ptErr[BInfo->rftk1_index[j]]/TrackInfo->pt[BInfo->rftk1_index[j]]) < 0.1 && 
+                         TMath::Abs(TrackInfo->ptErr[BInfo->rftk2_index[j]]/TrackInfo->pt[BInfo->rftk2_index[j]]) < 0.1 &&
+                         (TrackInfo->chi2[BInfo->rftk1_index[j]]/TrackInfo->ndf[BInfo->rftk1_index[j]]/(TrackInfo->nStripLayer[BInfo->rftk1_index[j]]+TrackInfo->nPixelLayer[BInfo->rftk1_index[j]])) < 0.18 &&
+                         (TrackInfo->chi2[BInfo->rftk2_index[j]]/TrackInfo->ndf[BInfo->rftk2_index[j]]/(TrackInfo->nStripLayer[BInfo->rftk2_index[j]]+TrackInfo->nPixelLayer[BInfo->rftk2_index[j]])) < 0.18
+                         )) continue;
                   }
                 if(BInfo->type[j]==(t+1))
                   {
@@ -711,7 +757,7 @@ public:
                     Btypesize[tidx]++;
                   }
               }
-            
+
             if(t==0)      nt0->Fill();
             else if(t==1) nt1->Fill();
             else if(t==2) nt2->Fill();
@@ -1014,11 +1060,12 @@ public:
       if(MuonInfo->muqual[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]&4096) mu2TMOneStationTight[typesize] = 1;
       else mu2TMOneStationTight[typesize] = 0;
     */
-    
+
     float tk1px,tk1py,tk1pz,tk1E;
     float tk2px,tk2py,tk2pz,tk2E;
     Btrk1Idx[typesize] = BInfo->rftk1_index[j];
     Btrk2Idx[typesize] = BInfo->rftk2_index[j];
+
     if(BInfo->type[j]==1 || BInfo->type[j]==2)
       {
         b4P->SetPtEtaPhiM(TrackInfo->pt[BInfo->rftk1_index[j]],TrackInfo->eta[BInfo->rftk1_index[j]],TrackInfo->phi[BInfo->rftk1_index[j]],track_mass1);
@@ -1278,6 +1325,23 @@ public:
                         tk1EK+tk2EK);
         BtktkmassKK[typesize] = b4P->Mag();
       }
+
+    bool istrk1H = Btrk1Pt[typesize]>Btrk2Pt[typesize];
+    BtrkLH[typesize] = istrk1H?1:2;
+    BtrkHPt[typesize] = istrk1H?Btrk1Pt[typesize]:Btrk2Pt[typesize];
+    BtrkLPt[typesize] = istrk1H?Btrk2Pt[typesize]:Btrk1Pt[typesize];
+    BtrkHPhi[typesize] = istrk1H?Btrk1Phi[typesize]:Btrk2Phi[typesize];
+    BtrkLPhi[typesize] = istrk1H?Btrk2Phi[typesize]:Btrk1Phi[typesize];
+    BtrkHEta[typesize] = istrk1H?Btrk1Eta[typesize]:Btrk2Eta[typesize];
+    BtrkLEta[typesize] = istrk1H?Btrk2Eta[typesize]:Btrk1Eta[typesize];
+    BtrkHDxy1[typesize] = istrk1H?Btrk1Dxy1[typesize]:Btrk2Dxy1[typesize];
+    BtrkLDxy1[typesize] = istrk1H?Btrk2Dxy1[typesize]:Btrk1Dxy1[typesize];
+    BtrkHDxyError1[typesize] = istrk1H?Btrk1DxyError1[typesize]:Btrk2DxyError1[typesize];
+    BtrkLDxyError1[typesize] = istrk1H?Btrk2DxyError1[typesize]:Btrk1DxyError1[typesize];
+    BtrkHDz1[typesize] = istrk1H?Btrk1Dz1[typesize]:Btrk2Dz1[typesize];
+    BtrkLDz1[typesize] = istrk1H?Btrk2Dz1[typesize]:Btrk1Dz1[typesize];
+    BtrkHDzError1[typesize] = istrk1H?Btrk1DzError1[typesize]:Btrk2DzError1[typesize];
+    BtrkLDzError1[typesize] = istrk1H?Btrk2DzError1[typesize]:Btrk1DzError1[typesize];
 
     Bprepref[typesize] = false;
     if(TMath::Abs(Bmumumass[typesize]-3.096916) < 0.05 && TMath::Abs(Bujeta[typesize]) < 2.4 &&
