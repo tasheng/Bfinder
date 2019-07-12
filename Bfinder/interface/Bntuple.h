@@ -1404,7 +1404,7 @@ public:
                     if(BInfo->type[j]==7 && level < 3)
                       {
                         mGenIdxTk1=0;
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==100443)
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==9920443)
                           {
                             level = 3;
                             bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
@@ -1448,7 +1448,7 @@ public:
                         if(BInfo->type[j]==7 && level < 3)
                           {
                             mGenIdxTk2 = 0;
-                            if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==100443)
+                            if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==9920443)
                               {
                                 level = 3;
                                 bGenIdxTk2 = GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]];
@@ -1487,7 +1487,7 @@ public:
                                 bGenIdxMu1=GenInfo->mo1[ujidx];
                                 flagkstar++;//=1
                               }
-                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443))
+                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==20443))
                               {
                                 level = 3;
                                 bGenIdxMu1=GenInfo->mo1[ujidx];
@@ -1527,7 +1527,7 @@ public:
                                 bGenIdxMu2=GenInfo->mo1[ujidx];
                                 flagkstar++;//=2
                               }
-                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443))
+                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==20443))
                               {
                                 level = 3;
                                 bGenIdxMu2=GenInfo->mo1[ujidx];
