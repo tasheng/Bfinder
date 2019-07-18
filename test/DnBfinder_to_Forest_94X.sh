@@ -88,8 +88,7 @@ process.ana_step = cms.Path( \\
     process.hltanalysis * \\
     process.hiEvtAnalyzer * \\
     process.hltobject + \\
-    process.HiForest + \\
-    process.runAnalyzer \\
+    process.HiForest \\
     ) \\
 " $ifile
     done

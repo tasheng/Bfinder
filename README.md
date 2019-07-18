@@ -25,9 +25,9 @@ git clone -branch Dfinder_9XX https://github.com/boundino/Bfinder.git
 source Bfinder/test/DnBfinder_to_Forest_94X.sh
 scram b -j4
 # Bfinder MC:
-mkdir -p bfinder && cp HeavyIonsAnalysis/JetAnalysis/test/runForestAOD_pponAA_MC_94X_onlyBfinder.py bfinder/runForestAOD_pponAA_MC_94X_onlyBfinder.py
+mkdir -p bfinder && cp HeavyIonsAnalysis/JetAnalysis/test/runForestAOD_pp_MC_94X_onlyBfinder.py bfinder/runForestAOD_pp_MC_94X_onlyBfinder.py
 # Bfinder data:
-mkdir -p bfinder && cp HeavyIonsAnalysis/JetAnalysis/test/runForestAOD_pponAA_DATA_94X_onlyBfinder.py bfinder/runForestAOD_pponAA_DATA_94X_onlyBfinder.py
+mkdir -p bfinder && cp HeavyIonsAnalysis/JetAnalysis/test/runForestAOD_pp_DATA_94X_onlyBfinder.py bfinder/runForestAOD_pp_DATA_94X_onlyBfinder.py
 cd bfinder/
 ```
 
@@ -36,9 +36,9 @@ To run:
 
 * MC:
 ```
-cmsRun runForestAOD_pponAA_MC_94X_onlyBfinder.py
+cmsRun runForestAOD_pp_MC_94X_onlyBfinder.py
 ```
 * data:
 ```
-cmsRun runForestAOD_pponAA_DATA_94X_onlyBfinder.py
+cmsRun runForestAOD_pp_DATA_94X_onlyBfinder.py
 ```
