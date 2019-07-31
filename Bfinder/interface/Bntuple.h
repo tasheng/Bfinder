@@ -1369,56 +1369,60 @@ public:
         int bGenIdxTk2=-1;
         int bGenIdxMu1=-1;
         int bGenIdxMu2=-1;
-        //int ujGenIdxMu1=-1;
-        //int ujGenIdxMu2=-1;
+        int ujGenIdxMu1=-1;
+        int ujGenIdxMu2=-1;
         
-        float BId,MId,tk1Id,tk2Id;
+        // float BId,MId,tk1Id,tk2Id;
+        std::vector<float> BId;
+        float MId,tk1Id,tk2Id;
         //tk1:positive, tk2:negtive
         if(BInfo->type[j]==1)
           {
-            BId = 521;//B+-
+            BId.push_back(521);//B+-
             MId = -1;
             tk1Id = 321;//K+-
             tk2Id = -1;
           }
         if(BInfo->type[j]==2)
           {
-            BId = 521;//B+-
+            BId.push_back(521);//B+-
             MId = -1;
             tk1Id = 211;//pi+-
             tk2Id = -1;
           }
         if(BInfo->type[j]==3)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 310;//Ks
             tk1Id = 211;//pi+
             tk2Id = 211;//pi-
           }
         if(BInfo->type[j]==4)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 313;//K*0
             tk1Id = 321;//K+
             tk2Id = 211;//pi-
           }
         if(BInfo->type[j]==5)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 313;//K*0
             tk1Id = 211;//pi+
             tk2Id = 321;//K-
           }
         if(BInfo->type[j]==6)
           {
-            BId = 531;//Bs
+            BId.push_back(531);//Bs
             MId = 333;//phi
             tk1Id = 321;//K+
             tk2Id = 321;//K-
           }
         if(BInfo->type[j]==7)
           {
-            BId = 20443;//X3872
+            BId.push_back(20443);//chic1
+            BId.push_back(100443);//psi'
+            BId.push_back(9920443);//np X3872
             MId = 113;//rho
             tk1Id = 211;//pi+
             tk2Id = 211;//pi-
@@ -1443,7 +1447,7 @@ public:
                     if(!twoTks)//one trk channel
                       {
                         mGenIdxTk1=0;
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==BId)
+                        if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]), BId))
                           {
                             level = 3;
                             bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
@@ -1451,12 +1455,12 @@ public:
                       }
                     else//two trk channel
                       {
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==MId)
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==MId) // w/ resonance
                           {
                             level = 2;
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==BId || (BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==9920443))
+                                if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]]), BId))
                                   {
                                     level = 3;
                                     bGenIdxTk1=GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]];
@@ -1464,14 +1468,14 @@ public:
                               }
                             mGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
                           }
-                      }
-                    if(BInfo->type[j]==7 && level < 3)
-                      {
-                        mGenIdxTk1=0;
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]])==9920443)
+                        else if(BInfo->type[j]==7) // w/o resonance
                           {
-                            level = 3;
-                            bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
+                            mGenIdxTk1=0;
+                            if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]), BId))
+                              {
+                                level = 3;
+                                bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
+                              }
                           }
                       }
                   }
@@ -1496,12 +1500,12 @@ public:
                     level = 1;
                     if(GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]>-1)
                       {
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==MId)
+                        if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==MId) // w/ resonance
                           {
                             level = 2;
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==BId || (BInfo->type[j]==7 && abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==9920443))
+                                if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]]), BId))
                                   {
                                     level = 3;
                                     bGenIdxTk2 = GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]];
@@ -1509,10 +1513,10 @@ public:
                               }
                             mGenIdxTk2 = GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]];
                           }
-                        if(BInfo->type[j]==7 && level < 3)
+                        else if(BInfo->type[j]==7) // w/o resonance
                           {
                             mGenIdxTk2 = 0;
-                            if(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==20443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]])==9920443)
+                            if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]), BId))
                               {
                                 level = 3;
                                 bGenIdxTk2 = GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]];
@@ -1525,38 +1529,35 @@ public:
           }
         
         //mu1
-        int murad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]>-1)
           {
-            int level =0;
+            int level = 0;
             if(abs(GenInfo->pdgId[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]])==13)
               {
                 level=1;
-                if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]>-1)
+                int murad = 0;
+                int muidx = MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]];
+                while(GenInfo->mo1[muidx]>-1)
                   {
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]]==443 || 
-                       (abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]])==13 && 
-                        GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]] > -1 &&
-                        GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]]]==443))
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[muidx]])!=13) break;
+                    muidx = GenInfo->mo1[muidx];
+                    murad++;
+                  }
+                if(GenInfo->mo1[muidx]>-1)
+                  {
+                    if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        //ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]];
-                        int ujidx = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]];
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]]]]; murad++; }
+                        ujGenIdxMu1 = GenInfo->mo1[muidx];
                         level=2;
-                        if(GenInfo->mo1[ujidx]>-1)
+                        if(GenInfo->mo1[GenInfo->mo1[muidx]]>-1)
                           {
-                            if(abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==BId)
+                            if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[muidx]]]), BId))
                               {
                                 level = 3;
-                                bGenIdxMu1=GenInfo->mo1[ujidx];
+                                bGenIdxMu1=GenInfo->mo1[GenInfo->mo1[muidx]];
                                 flagkstar++;//=1
+                                if(murad) { level = 4; }
                               }
-                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==20443))
-                              {
-                                level = 3;
-                                bGenIdxMu1=GenInfo->mo1[ujidx];
-                              }
-                            if(level==3 && murad) { level = 4; }
                           }
                       } 
                   }
@@ -1565,45 +1566,42 @@ public:
           }
         
         //mu2
-        murad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]>-1)
-          {  
-            int level =0;
+          {
+            int level = 0;
             if(abs(GenInfo->pdgId[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]])==13)
               {
-                level = 1;
-                if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]>-1)
+                level=1;
+                int murad = 0;
+                int muidx = MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]];
+                while(GenInfo->mo1[muidx]>-1)
                   {
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]]==443 || 
-                       (abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]])==13 && 
-                        GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]] > -1 &&
-                        GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]]]==443))
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[muidx]])!=13) break;
+                    muidx = GenInfo->mo1[muidx];
+                    murad++;
+                  }
+                if(GenInfo->mo1[muidx]>-1)
+                  {
+                    if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        //ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]];
-                        int ujidx = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]];
-                        if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]])==13) { ujidx = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]]]]; murad++; }
-                        level = 2;
-                        if(GenInfo->mo1[ujidx]>-1)
+                        ujGenIdxMu2 = GenInfo->mo1[muidx];
+                        level=2;
+                        if(GenInfo->mo1[GenInfo->mo1[muidx]]>-1)
                           {
-                            if(abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==BId)
+                            if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[muidx]]]), BId))
                               {
                                 level = 3;
-                                bGenIdxMu2=GenInfo->mo1[ujidx];
+                                bGenIdxMu2=GenInfo->mo1[GenInfo->mo1[muidx]];
                                 flagkstar++;//=2
+                                if(murad) { level = 4; }
                               }
-                            else if(BInfo->type[j]==7 && (abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==100443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==9920443 || abs(GenInfo->pdgId[GenInfo->mo1[ujidx]])==20443))
-                              {
-                                level = 3;
-                                bGenIdxMu2=GenInfo->mo1[ujidx];
-                              }
-                            if(level==3 && murad) { level = 4; }
                           }
-                      }
+                      } 
                   }
               }
             Bgen[typesize]+=(level*1000);
           }
-        
+
         int level=0;
         if(mGenIdxTk1!=-1 && mGenIdxTk2!=-1)
           {
@@ -1642,7 +1640,7 @@ public:
                           {
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]])==BId)
+                                if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]]), BId))
                                   {
                                     flagkstar++;//=3
                                     bGenIdxTk1=GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]];
@@ -1665,7 +1663,7 @@ public:
                           {
                             if(GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]>-1)
                               {
-                                if(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]])==BId)
+                                if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]]]), BId))
                                   {
                                     flagkstar++;//=4
                                     bGenIdxTk2 = GenInfo->mo1[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk2_index[j]]]];
@@ -1823,7 +1821,7 @@ public:
     if(!REAL)
       {
         Jgen[typesize] = 0;
-        Jgen[typesize]+=3300;
+        Jgen[typesize]+=33;
         JgenIndex[typesize] = -1;
         Jgenpt[typesize] = -1;
         JgencollisionId[typesize] = -1;
@@ -1835,81 +1833,72 @@ public:
         int ujGenIdxMu1=-1;
         int ujGenIdxMu2=-1;
 
-        int jmu1rad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]>-1)
           {
             int level =0;
             if(abs(GenInfo->pdgId[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]])==13)
               {
                 level=1;
-                if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]>-1)
+                int jmurad = 0;
+                int muidx = MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]];
+                while(GenInfo->mo1[muidx]>-1)
                   {
-                    if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]])==13 && GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]>-1) { jmu1rad++; }
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]==443 || (jmu1rad && GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]]]==443))
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[muidx]])!=13) break;
+                    muidx = GenInfo->mo1[muidx];
+                    jmurad++;
+                  }
+                if(GenInfo->mo1[muidx]>-1)
+                  {
+                    if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        ujGenIdxMu1 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]];
-                        if(jmu1rad) ujGenIdxMu1 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu1_index[j]]]];
+                        ujGenIdxMu1 = GenInfo->mo1[muidx];
                         level = 3;
-                        if(GenInfo->mo1[ujGenIdxMu1]>-1)
-                          {
-                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[ujGenIdxMu1]]);
-                            bPDG /= 100;
-                            bPDG = bPDG%10;
-                            if(bPDG==5)
-                              {
-                                level = 4;
-                                bGenIdxMu1 = GenInfo->mo1[ujGenIdxMu1];
-                              }
-                          }
+                        if(jmurad) level = 4;
+                        bGenIdxMu1 = GenInfo->mo1[ujGenIdxMu1];
                       } 
                   }
               }
-            Jgen[typesize]+=(level);
+            Jgen[typesize]+=(level*100);
           }
 
-        int jmu2rad = 0;
         if(MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]>-1)
           {
             int level =0;
             if(abs(GenInfo->pdgId[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]])==13)
               {
                 level=1;
-                if(GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]>-1)
+                int jmurad = 0;
+                int muidx = MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]];
+                while(GenInfo->mo1[muidx]>-1)
                   {
-                    if(abs(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]])==13 && GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]>-1) { jmu2rad++; }
-                    if(GenInfo->pdgId[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]==443 || (jmu2rad && GenInfo->pdgId[GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]]]==443))
+                    if(abs(GenInfo->pdgId[GenInfo->mo1[muidx]])!=13) break;
+                    muidx = GenInfo->mo1[muidx];
+                    jmurad++;
+                  }
+                if(GenInfo->mo1[muidx]>-1)
+                  {
+                    if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        ujGenIdxMu2 = GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]];
-                        if(jmu2rad) ujGenIdxMu2 = GenInfo->mo1[GenInfo->mo1[MuonInfo->geninfo_index[BInfo->uj_rfmu2_index[j]]]];
+                        ujGenIdxMu2 = GenInfo->mo1[muidx];
                         level = 3;
-                        if(GenInfo->mo1[ujGenIdxMu2]>-1)
-                          {
-                            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[ujGenIdxMu2]]);
-                            bPDG /= 100;
-                            bPDG = bPDG%10;
-                            if(bPDG==5)
-                              {
-                                level = 4;
-                                bGenIdxMu2 = GenInfo->mo1[ujGenIdxMu2];
-                              }
-                          }
+                        if(jmurad) level = 4;
+                        bGenIdxMu2 = GenInfo->mo1[ujGenIdxMu2];
                       } 
                   }
               }
-            Jgen[typesize]+=(level*10);
+            Jgen[typesize]+=(level*1000);
           }
 
-        int level=0;
         if(ujGenIdxMu1!=-1 && ujGenIdxMu1==ujGenIdxMu2)
           {
-            level = 2;
+            int level=2;
             JgenIndex[typesize] = ujGenIdxMu1;
-            if((Jgen[typesize]==3344) && bGenIdxMu1!=bGenIdxMu2) level = 1;
+            int bPDG = abs(GenInfo->pdgId[GenInfo->mo1[ujGenIdxMu1]]);
+            bPDG /= 100;
+            bPDG = bPDG%10;
+            if(bPDG==5) { level = 3; }
+            Jgen[typesize]+=(level*10000);
           }
-        Jgen[typesize]+=(level*10000);
-
-        if(jmu1rad && Jgen[typesize]>=23333) { Jgen[typesize]+=100; }
-        if(jmu2rad && Jgen[typesize]>=23333) { Jgen[typesize]+=1000; }
 
         if(Jgen[typesize]>=23333)
           {
@@ -1960,12 +1949,13 @@ public:
       }
     else
       {
-        float BId,MId,tk1Id,tk2Id;
+        std::vector<float> BId;
+        float MId,tk1Id,tk2Id;
         int twoTks;
         //tk1:positive, tk2:negtive
         if(Btype==1)
           {
-            BId = 521;//B+-
+            BId.push_back(521);//B+-
             MId = -1;
             tk1Id = 321;//K+-
             tk2Id = -1;
@@ -1973,7 +1963,7 @@ public:
           }
         if(Btype==2)
           {
-            BId = 521;//B+-
+            BId.push_back(521);//B+-
             MId = -1;
             tk1Id = 211;//pi+-
             tk2Id = -1;
@@ -1981,7 +1971,7 @@ public:
           }
         if(Btype==3)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 310;//Ks
             tk1Id = 211;//pi+
             tk2Id = -211;//pi-
@@ -1989,7 +1979,7 @@ public:
           }
         if(Btype==4)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 313;//K*0
             tk1Id = 321;//K+
             tk2Id = -211;//pi-
@@ -1997,7 +1987,7 @@ public:
           }
         if(Btype==5)
           {
-            BId = 511;//B0
+            BId.push_back(511);//B0
             MId = 313;//K*0
             tk1Id = -321;//pi+
             tk2Id = 211;//K-
@@ -2005,7 +1995,7 @@ public:
           }
         if(Btype==6)
           {
-            BId = 531;//Bs
+            BId.push_back(531);//Bs
             MId = 333;//phi
             tk1Id = 321;//K+
             tk2Id = -321;//K-
@@ -2013,60 +2003,52 @@ public:
           }
         if(Btype==7)
           {
-            BId = 20443;//X3872
+            BId.push_back(20443);//chic1
+            BId.push_back(100443);//psi'
+            BId.push_back(9920443);//X3872
             MId = 113;//rho
             tk1Id = 211;//pi+
             tk2Id = -211;//pi-
             twoTks = 1;
           }
         
-        int flag=0;
-        if(abs(GenInfo->pdgId[j])==BId || (Btype==7 && abs(GenInfo->pdgId[j])==9920443))
+        int flag=0; subtype=0;
+        if(isBId(abs(GenInfo->pdgId[j]), BId))
           {
-           if(GenInfo->nDa[j]==2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
-             {
-               if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
-                 {
-                   if(GenInfo->da1[GenInfo->da1[j]]!=-1&&GenInfo->da2[GenInfo->da1[j]]!=-1)
-                     {
-                       if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[j]]])==13&&abs(GenInfo->pdgId[GenInfo->da2[GenInfo->da1[j]]])==13)
-                         {
-                           if(!twoTks)
-                             {
-                               if(abs(GenInfo->pdgId[GenInfo->da2[j]])==tk1Id) flag++;
-                             }
-                           else
-                             {
-                               if (abs(GenInfo->pdgId[GenInfo->da2[j]])==MId) 
-                                 {
-                                   if(GenInfo->da1[GenInfo->da2[j]]!=-1 && GenInfo->da2[GenInfo->da2[j]]!=-1)
-                                     {
-                                       if(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[j]]]==tk1Id && GenInfo->pdgId[GenInfo->da2[GenInfo->da2[j]]]==tk2Id) flag++;
-                                     }
-                                 }
-                             }
-                           if(GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]!=-1 && GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]!=-1)
-                             {
-                               if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]])==13 && abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]])==13) subtype = 1;
-                             }
-                         }
-                     }
-                 }
-             }
-          }
-        if(Btype==7 && flag==0)
-          {
-            if((abs(GenInfo->pdgId[j])==20443 || abs(GenInfo->pdgId[j])==100443 || abs(GenInfo->pdgId[j])==9920443)&&GenInfo->nDa[j]==3&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1&&GenInfo->da3[j]!=-1)
+            if(GenInfo->nDa[j]>=2&&GenInfo->da1[j]!=-1&&GenInfo->da2[j]!=-1)
               {
-                if (abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
+                if(abs(GenInfo->pdgId[GenInfo->da1[j]])==443)//jpsi
                   {
                     if(GenInfo->da1[GenInfo->da1[j]]!=-1&&GenInfo->da2[GenInfo->da1[j]]!=-1)
                       {
                         if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[j]]])==13&&abs(GenInfo->pdgId[GenInfo->da2[GenInfo->da1[j]]])==13)
                           {
-                            if(abs(GenInfo->pdgId[GenInfo->da2[j]])==abs(tk1Id) && abs(GenInfo->pdgId[GenInfo->da3[j]])==abs(tk2Id))
+                            if(!twoTks)
                               {
-                                flag++;
+                                if(abs(GenInfo->pdgId[GenInfo->da2[j]])==tk1Id) flag++;
+                              }
+                            else
+                              {
+                                if(abs(GenInfo->pdgId[GenInfo->da2[j]])==MId) // w/ resonance
+                                  {
+                                    if(GenInfo->da1[GenInfo->da2[j]]!=-1 && GenInfo->da2[GenInfo->da2[j]]!=-1)
+                                      {
+                                        if(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[j]]]==tk1Id && GenInfo->pdgId[GenInfo->da2[GenInfo->da2[j]]]==tk2Id) flag++;
+                                      }
+                                  }
+                                else if(GenInfo->da3[j]!=-1 && Btype==7) // w/o resonance
+                                  {
+                                    if(GenInfo->pdgId[GenInfo->da2[j]]==tk1Id && GenInfo->pdgId[GenInfo->da3[j]]==tk2Id)
+                                      { flag++; }
+                                  }
+                              }
+                            if(GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]!=-1)
+                              {
+                                if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da1[GenInfo->da1[j]]]])==13) subtype++;
+                              }
+                            if(GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]!=-1)
+                              {
+                                if(abs(GenInfo->pdgId[GenInfo->da1[GenInfo->da2[GenInfo->da1[j]]]])==13) subtype++;
                               }
                           }
                       }
@@ -2074,11 +2056,18 @@ public:
               }
           }
         return flag;
-
       }
-
+    
   }//}}}
-  
+
+  template<typename T>
+  bool isBId(int pdgId, std::vector<T> BId)
+  {
+    bool match = false;
+    for(auto& id : BId)
+      { if(pdgId==id) { match = true; break; } }
+    return match;
+  }
 };//}}}
 
 #endif
