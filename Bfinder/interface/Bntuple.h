@@ -1012,12 +1012,12 @@ public:
     Bmu2SoftMuID[typesize] = MuonInfo->SoftMuID[BInfo->uj_rfmu2_index[BInfo->rfuj_index[j]]];
     Bmu1isAcc[typesize] = (fabs(Bmu1eta[typesize]) < 2.4 && 
                            ((fabs(Bmu1eta[typesize]) < 1.2 && Bmu1pt[typesize] >= 3.5) ||
-                            (fabs(Bmu1eta[typesize]) >= 1.2 && fabs(Bmu1eta[typesize]) < 2.1 && Bmu1pt[typesize] >= 5.77-1.89*fabs(Bmu1eta[typesize])) ||
-                            (fabs(Bmu1eta[typesize]) >= 2.1 && Bmu1pt[typesize] >= 1.8)));
+                            (fabs(Bmu1eta[typesize]) >= 1.2 && fabs(Bmu1eta[typesize]) < 2.1 && Bmu1pt[typesize] >= 5.47-1.89*fabs(Bmu1eta[typesize])) ||
+                            (fabs(Bmu1eta[typesize]) >= 2.1 && Bmu1pt[typesize] >= 1.5)));
     Bmu2isAcc[typesize] = (fabs(Bmu2eta[typesize]) < 2.4 && 
                            ((fabs(Bmu2eta[typesize]) < 1.2 && Bmu2pt[typesize] >= 3.5) ||
-                            (fabs(Bmu2eta[typesize]) >= 1.2 && fabs(Bmu2eta[typesize]) < 2.1 && Bmu2pt[typesize] >= 5.77-1.89*fabs(Bmu2eta[typesize])) ||
-                            (fabs(Bmu2eta[typesize]) >= 2.1 && Bmu2pt[typesize] >= 1.8)));
+                            (fabs(Bmu2eta[typesize]) >= 1.2 && fabs(Bmu2eta[typesize]) < 2.1 && Bmu2pt[typesize] >= 5.47-1.89*fabs(Bmu2eta[typesize])) ||
+                            (fabs(Bmu2eta[typesize]) >= 2.1 && Bmu2pt[typesize] >= 1.5)));
 
     Bmu1TrgMatchFilterE[typesize] = MuonInfo->MuTrgMatchFilterTrgObjE[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]*MuonInfo->MuTrgMatchFilterSize+0];
     Bmu1TrgMatchFilterPt[typesize] = MuonInfo->MuTrgMatchFilterTrgObjPt[BInfo->uj_rfmu1_index[BInfo->rfuj_index[j]]*MuonInfo->MuTrgMatchFilterSize+0];
@@ -1559,7 +1559,7 @@ public:
                                 if(murad) { level = 4; }
                               }
                           }
-                      } 
+                      }
                   }
               }
             Bgen[typesize]+=(level*100);
@@ -1794,12 +1794,12 @@ public:
     Jmu2SoftMuID[typesize] = MuonInfo->SoftMuID[BInfo->uj_rfmu2_index[j]];
     Jmu1isAcc[typesize] = (fabs(Jmu1eta[typesize]) < 2.4 &&
                            ((fabs(Jmu1eta[typesize]) < 1.2 && Jmu1pt[typesize] >= 3.5) ||
-                            (fabs(Jmu1eta[typesize]) >= 1.2 && fabs(Jmu1eta[typesize]) < 2.1 && Jmu1pt[typesize] >= 5.77-1.89*fabs(Jmu1eta[typesize])) ||
-                            (fabs(Jmu1eta[typesize]) >= 2.1 && Jmu1pt[typesize] >= 1.8)));
+                            (fabs(Jmu1eta[typesize]) >= 1.2 && fabs(Jmu1eta[typesize]) < 2.1 && Jmu1pt[typesize] >= 5.47-1.89*fabs(Jmu1eta[typesize])) ||
+                            (fabs(Jmu1eta[typesize]) >= 2.1 && Jmu1pt[typesize] >= 1.5)));
     Jmu2isAcc[typesize] = (fabs(Jmu2eta[typesize]) < 2.4 &&
                            ((fabs(Jmu2eta[typesize]) < 1.2 && Jmu2pt[typesize] >= 3.5) ||
-                            (fabs(Jmu2eta[typesize]) >= 1.2 && fabs(Jmu2eta[typesize]) < 2.1 && Jmu2pt[typesize] >= 5.77-1.89*fabs(Jmu2eta[typesize])) ||
-                            (fabs(Jmu2eta[typesize]) >= 2.1 && Jmu2pt[typesize] >= 1.8)));
+                            (fabs(Jmu2eta[typesize]) >= 1.2 && fabs(Jmu2eta[typesize]) < 2.1 && Jmu2pt[typesize] >= 5.47-1.89*fabs(Jmu2eta[typesize])) ||
+                            (fabs(Jmu2eta[typesize]) >= 2.1 && Jmu2pt[typesize] >= 1.5)));
 
     Jmu1TrgMatchFilterE[typesize] = MuonInfo->MuTrgMatchFilterTrgObjE[BInfo->uj_rfmu1_index[j]*MuonInfo->MuTrgMatchFilterSize+0];
     Jmu1TrgMatchFilterPt[typesize] = MuonInfo->MuTrgMatchFilterTrgObjPt[BInfo->uj_rfmu1_index[j]*MuonInfo->MuTrgMatchFilterSize+0];
