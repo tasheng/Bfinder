@@ -1205,12 +1205,12 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             std::vector<const reco::Candidate *> sel_cands;
             for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
                 it_gen != gens->end(); it_gen++){
-                if (it_gen->status() > 2 && it_gen->status() != 8 && it_gen->status() != 91) continue;//only status 1, 2, 8(simulated)
+              if (it_gen->status() > 2 && it_gen->status() != 8 && it_gen->status() != 91 && abs(it_gen->pdgId())!=13) continue;//only status 1, 2, 8(simulated), save all muons
                 if(GenInfo.size >= MAX_GEN){
                     fprintf(stderr,"ERROR: number of gens exceeds the size of array.\n");
                     break;;
                 }
-
+                
                 bool isGenSignal = false;
                 //save target intermediat state particle
                 if (
@@ -1228,6 +1228,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     it_gen->pdgId() == 443      ||//Jpsi
                     it_gen->pdgId() == 100443   ||//Psi(2S)
                     it_gen->pdgId() == 20443   ||//chi_c1(1P)
+                    it_gen->pdgId() == 9920443 ||//X3872
                     it_gen->pdgId() == 553      ||//Upsilon
                     it_gen->pdgId() == 100553     //Upsilon(2S)
                    ) isGenSignal = true;//b, c, s mesons

@@ -1369,8 +1369,8 @@ public:
         int bGenIdxTk2=-1;
         int bGenIdxMu1=-1;
         int bGenIdxMu2=-1;
-        int ujGenIdxMu1=-1;
-        int ujGenIdxMu2=-1;
+        // int ujGenIdxMu1=-1;
+        // int ujGenIdxMu2=-1;
         
         // float BId,MId,tk1Id,tk2Id;
         std::vector<float> BId;
@@ -1547,7 +1547,7 @@ public:
                   {
                     if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        ujGenIdxMu1 = GenInfo->mo1[muidx];
+                        // ujGenIdxMu1 = GenInfo->mo1[muidx];
                         level=2;
                         if(GenInfo->mo1[GenInfo->mo1[muidx]]>-1)
                           {
@@ -1584,7 +1584,7 @@ public:
                   {
                     if(GenInfo->pdgId[GenInfo->mo1[muidx]]==443)
                       {
-                        ujGenIdxMu2 = GenInfo->mo1[muidx];
+                        // ujGenIdxMu2 = GenInfo->mo1[muidx];
                         level=2;
                         if(GenInfo->mo1[GenInfo->mo1[muidx]]>-1)
                           {
@@ -1828,8 +1828,8 @@ public:
         Jgeneta[typesize] = -20;
         Jgenphi[typesize] = -20;
         Jgeny[typesize] = -1;
-        int bGenIdxMu1=-1;
-        int bGenIdxMu2=-1;
+        // int bGenIdxMu1=-1;
+        // int bGenIdxMu2=-1;
         int ujGenIdxMu1=-1;
         int ujGenIdxMu2=-1;
 
@@ -1854,7 +1854,7 @@ public:
                         ujGenIdxMu1 = GenInfo->mo1[muidx];
                         level = 3;
                         if(jmurad) level = 4;
-                        bGenIdxMu1 = GenInfo->mo1[ujGenIdxMu1];
+                        // bGenIdxMu1 = GenInfo->mo1[ujGenIdxMu1];
                       } 
                   }
               }
@@ -1882,7 +1882,7 @@ public:
                         ujGenIdxMu2 = GenInfo->mo1[muidx];
                         level = 3;
                         if(jmurad) level = 4;
-                        bGenIdxMu2 = GenInfo->mo1[ujGenIdxMu2];
+                        // bGenIdxMu2 = GenInfo->mo1[ujGenIdxMu2];
                       } 
                   }
               }
