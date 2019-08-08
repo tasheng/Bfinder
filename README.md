@@ -4,13 +4,12 @@ To setup Bfinder
 Ref: https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiForestSetup#Setup_for_10_3_X_2018_PbPb_data
 
 Branch for CMSSW_10XX Recommended using 
-* `CMSSW_10_3_2` for MC
 * `CMSSW_10_3_1` for data (prompt-reco)
-* `CMSSW_10_3_3_patch1` for data (re-reco)
+* `CMSSW_10_3_3_patch1` for data (re-reco) and MC (official)
 
 ```
-cmsrel CMSSW_10_3_2 # replace CMSSW_10_3_2 with the proper release
-cd CMSSW_10_3_2/src
+cmsrel CMSSW_10_3_3_patch1 # replace CMSSW_10_3_2 with the proper release
+cd CMSSW_10_3_3_patch1/src
 cmsenv
 git cms-merge-topic -u CmsHI:forest_CMSSW_10_3_1 # forest_CMSSW_10_3_1 regardless of release
 # Switch to the branch HEAD
