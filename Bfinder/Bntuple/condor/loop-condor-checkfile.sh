@@ -5,7 +5,7 @@ if [[ $# -ne 6 ]]; then
     exit 1
 fi
 
-DATASET=$1
+DATASETs=$1
 DESTINATION=$2
 REAL=$3
 SKIM=$4
@@ -15,9 +15,6 @@ LOGDIR=$6
 PROXYFILE=$(ls /tmp/ -lt | grep $USER | grep -m 1 x509 | awk '{print $NF}')
 
 NAME="ntuple"
-
-[[ -f filelist.txt ]] && rm filelist.txt
-ls $DATASET | grep -v "/" | grep -v -e '^[[:space:]]*$' | awk '{print "" $0}' >> filelist.txt
 
 SRM_PREFIX="/mnt/hadoop/"
 SRM_PATH=${DESTINATION#${SRM_PREFIX}}
@@ -29,17 +26,23 @@ SRM_PATH=${DESTINATION#${SRM_PREFIX}}
 mkdir -p $LOGDIR
 
 counter=0
-for i in `cat filelist.txt`
+for DATASET in `echo $DATASETs`
 do
-    [[ $counter -ge $MAXFILES ]] && break
-    if [ ! -f ${DESTINATION}/${NAME}_$i ] && [ -f ${DATASET}/$i ]
-    then
-        if [ -s ${DATASET}/$i ] || [ $ifCHECKEMPTY -eq 0 ]
+
+    [[ -f filelist.txt ]] && rm filelist.txt
+    ls $DATASET | grep -v "/" | grep -v -e '^[[:space:]]*$' | awk '{print "" $0}' >> filelist.txt
+
+    for i in `cat filelist.txt`
+    do
+        [[ $counter -ge $MAXFILES ]] && break
+        if [ ! -f ${DESTINATION}/${NAME}_$i ] && [ -f ${DATASET}/$i ]
         then
-            echo -e "\033[38;5;242mSubmitting a job for output\033[0m ${DESTINATION}/${NAME}_$i"
-            infn=`echo $i | awk -F "." '{print $1}'`
-            INFILE="${DATASET}/$i"
-	    cat > ${NAME}.condor <<EOF
+            if [ -s ${DATASET}/$i ] || [ $ifCHECKEMPTY -eq 0 ]
+            then
+                echo -e "\033[38;5;242mSubmitting a job for output\033[0m ${DESTINATION}/${NAME}_$i"
+                infn=`echo $i | awk -F "." '{print $1}'`
+                INFILE="${DATASET}/$i"
+	        cat > ${NAME}.condor <<EOF
 
 Universe     = vanilla
 Initialdir   = $PWD/
@@ -64,8 +67,8 @@ EOF
 condor_submit ${NAME}.condor -name submit.mit.edu
 mv ${NAME}.condor $LOGDIR/log-${infn}.condor
 counter=$(($counter+1))	
+            fi
         fi
-    fi
+    done
 done
-
 echo -e "Submitted \033[1;36m$counter\033[0m jobs to Condor."
