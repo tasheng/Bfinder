@@ -68,6 +68,9 @@ public:
   float     BsvpvDistance_2D[MAX_XB];
   float     BsvpvDisErr_2D[MAX_XB];
   int       Bisbestchi2[MAX_XB];
+  float     BQvalue[MAX_XB];
+  float     BQvalueuj[MAX_XB];
+  float     BQvaluemumu[MAX_XB];
   
   //BInfo.muonInfo
   float     Bmu1pt[MAX_XB];
@@ -198,6 +201,8 @@ public:
   bool      Btrk2highPurity[MAX_XB];
   int       Btrk1Quality[MAX_XB];
   int       Btrk2Quality[MAX_XB];
+  float     Btrk1dR[MAX_XB];
+  float     Btrk2dR[MAX_XB];
 
   int       BtrkLH[MAX_XB];
   float     BtrkLPt[MAX_XB];
@@ -483,6 +488,9 @@ public:
         nt->Branch("BsvpvDisErr_2D",BsvpvDisErr_2D,"BsvpvDisErr_2D[Bsize]/F");
         nt->Branch("BMaxDoca",BMaxDoca,"BMaxDoca[Bsize]/F");
         nt->Branch("Bisbestchi2",Bisbestchi2,"Bisbestchi2[Bsize]/I");
+        nt->Branch("BQvalue",BQvalue,"BQvalue[Bsize]/F");
+        nt->Branch("BQvalueuj",BQvalueuj,"BQvalueuj[Bsize]/F");
+        nt->Branch("BQvaluemumu",BQvaluemumu,"BQvaluemumu[Bsize]/F");
         
         //BInfo.trkInfo
         nt->Branch("Btrk1Idx",Btrk1Idx,"Btrk1Idx[Bsize]/I");
@@ -537,6 +545,9 @@ public:
         nt->Branch("Btrk2highPurity",Btrk2highPurity,"Btrk2highPurity[Bsize]/O");
         nt->Branch("Btrk1Quality",Btrk1Quality,"Btrk1Quality[Bsize]/I");
         nt->Branch("Btrk2Quality",Btrk2Quality,"Btrk2Quality[Bsize]/I");
+        nt->Branch("Btrk1dR",Btrk1dR,"Btrk1dR[Bsize]/F");
+        nt->Branch("Btrk2dR",Btrk2dR,"Btrk2dR[Bsize]/F");
+
         nt->Branch("BtrkLH",BtrkLPt,"BtrkLH[Bsize]/I");
         nt->Branch("BtrkLPt",BtrkLPt,"BtrkLPt[Bsize]/F");
         nt->Branch("BtrkHPt",BtrkHPt,"BtrkHPt[Bsize]/F");
@@ -1094,6 +1105,7 @@ public:
         Btrk1originalAlgo[typesize] = TrackInfo->originalTrkAlgo[BInfo->rftk1_index[j]];
         Btrk1highPurity[typesize] = TrackInfo->highPurity[BInfo->rftk1_index[j]];
         Btrk1Quality[typesize] = TrackInfo->trackQuality[BInfo->rftk1_index[j]];
+        Btrk1dR[typesize] = TMath::Sqrt(pow(TMath::ACos(TMath::Cos(Bujphi[typesize]-Btrk1Phi[typesize])),2) + pow(Bujeta[typesize]-Btrk1Eta[typesize],2));
         Btrk2Pt[typesize] = -1;
         Btrk2Eta[typesize] = -20;
         Btrk2Phi[typesize] = -20;
@@ -1119,6 +1131,7 @@ public:
         Btrk2originalAlgo[typesize] = 0;
         Btrk2highPurity[typesize] = false;
         Btrk2Quality[typesize] = 0;
+        Btrk2dR[typesize] = -1;
         Btktkmass[typesize] = -1;
         BtktkvProb[typesize] = -1;
         Btktkpt[typesize] = -1;
@@ -1172,6 +1185,7 @@ public:
         Btrk1originalAlgo[typesize] = TrackInfo->originalTrkAlgo[BInfo->rftk2_index[j]];
         Btrk1highPurity[typesize] = TrackInfo->highPurity[BInfo->rftk2_index[j]];
         Btrk1Quality[typesize] = TrackInfo->trackQuality[BInfo->rftk2_index[j]];
+        Btrk1dR[typesize] = TMath::Sqrt(pow(TMath::ACos(TMath::Cos(Bujphi[typesize]-Btrk1Phi[typesize])),2) + pow(Bujeta[typesize]-Btrk1Eta[typesize],2));
         tk1px = b4P->Px();
         tk1py = b4P->Py();
         tk1pz = b4P->Pz();
@@ -1202,6 +1216,7 @@ public:
         Btrk2originalAlgo[typesize] = TrackInfo->originalTrkAlgo[BInfo->rftk1_index[j]];
         Btrk2highPurity[typesize] = TrackInfo->highPurity[BInfo->rftk1_index[j]];
         Btrk2Quality[typesize] = TrackInfo->trackQuality[BInfo->rftk1_index[j]];
+        Btrk2dR[typesize] = TMath::Sqrt(pow(TMath::ACos(TMath::Cos(Bujphi[typesize]-Btrk2Phi[typesize])),2) + pow(Bujeta[typesize]-Btrk2Eta[typesize],2));
         tk2px = b4P->Px();
         tk2py = b4P->Py();
         tk2pz = b4P->Pz();
@@ -1263,6 +1278,7 @@ public:
         Btrk1originalAlgo[typesize] = TrackInfo->originalTrkAlgo[BInfo->rftk1_index[j]];
         Btrk1highPurity[typesize] = TrackInfo->highPurity[BInfo->rftk1_index[j]];
         Btrk1Quality[typesize] = TrackInfo->trackQuality[BInfo->rftk1_index[j]];
+        Btrk1dR[typesize] = TMath::Sqrt(pow(TMath::ACos(TMath::Cos(Bujphi[typesize]-Btrk1Phi[typesize])),2) + pow(Bujeta[typesize]-Btrk1Eta[typesize],2));
         tk1px = b4P->Px();
         tk1py = b4P->Py();
         tk1pz = b4P->Pz();
@@ -1293,6 +1309,7 @@ public:
         Btrk2originalAlgo[typesize] = TrackInfo->originalTrkAlgo[BInfo->rftk2_index[j]];
         Btrk2highPurity[typesize] = TrackInfo->highPurity[BInfo->rftk2_index[j]];
         Btrk2Quality[typesize] = TrackInfo->trackQuality[BInfo->rftk2_index[j]];
+        Btrk2dR[typesize] = TMath::Sqrt(pow(TMath::ACos(TMath::Cos(Bujphi[typesize]-Btrk2Phi[typesize])),2) + pow(Bujeta[typesize]-Btrk2Eta[typesize],2));
         tk2px = b4P->Px();
         tk2py = b4P->Py();
         tk2pz = b4P->Pz();
@@ -1325,6 +1342,10 @@ public:
                         tk1EK+tk2EK);
         BtktkmassKK[typesize] = b4P->Mag();
       }
+
+    BQvalue[typesize] = (Bmass[typesize]-3.096916-Btktkmass[typesize]);
+    BQvalueuj[typesize] = (Bmass[typesize]-Bujmass[typesize]-Btktkmass[typesize]);
+    BQvaluemumu[typesize] = (Bmass[typesize]-Bmumumass[typesize]-Btktkmass[typesize]);
 
     bool istrk1H = Btrk1Pt[typesize]>Btrk2Pt[typesize];
     BtrkLH[typesize] = istrk1H?1:2;
