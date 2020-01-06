@@ -63,8 +63,8 @@ process.Bfinder.MVAMapLabel = cms.InputTag(TrkLabel,"MVAValues")
 process.Bfinder.makeBntuple = cms.bool(True)
 process.Bfinder.tkPtCut = cms.double(0.2) # before fit
 process.Bfinder.jpsiPtCut = cms.double(0.0) # before fit
-process.Bfinder.bPtCut = cms.vdouble(1.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0) # before fit
-process.Bfinder.Bchannel = cms.vint32(1, 0, 0, 1, 1, 1, 1)
+process.Bfinder.bPtCut = cms.vdouble(2.0, 5.0, 5.0, 2.0, 2.0, 2.0, 5.0) # before fit
+process.Bfinder.Bchannel = cms.vint32(1, 0, 0, 1, 1, 1, 0)
 process.Bfinder.VtxChiProbCut = cms.vdouble(0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.10)
 process.Bfinder.svpvDistanceCut = cms.vdouble(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 0.0)
 process.Bfinder.doTkPreCut = cms.bool(True)
@@ -87,7 +87,7 @@ process.p = cms.Path(process.BfinderSequence)
 process.ana_step = cms.Path( \\
     process.hltanalysis * \\
     process.hiEvtAnalyzer * \\
-    process.hltobject + \\
+    # process.hltobject + \\
     process.HiForest \\
     ) \\
 " $ifile
