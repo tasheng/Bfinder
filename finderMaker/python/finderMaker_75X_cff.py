@@ -6,8 +6,8 @@ import FWCore.ParameterSet.Config as cms
 
 def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", useL1Stage2 = True, HLTProName = "HLT"):
 	### Set TransientTrackBuilder 
-	process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
-	
+	process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+
 	##Producing Gen list with SIM particles
 	process.genParticlePlusGEANT = cms.EDProducer("GenPlusSimParticleProducer",
 	        src           = cms.InputTag("g4SimHits"), # use "famosSimHits" for FAMOS
@@ -296,3 +296,29 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
 		process.patTriggerFull.l1GtReadoutRecordInputTag = cms.InputTag("hltGtDigis","",HLTProName)
 		process.patTriggerFull.l1tAlgBlkInputTag = cms.InputTag("hltGtStage2Digis","",HLTProName)
 		process.patTriggerFull.l1tExtBlkInputTag = cms.InputTag("hltGtStage2Digis","",HLTProName)
+
+
+
+def changeToMiniAOD(process):
+
+    if hasattr(process, "patMuonsWithTrigger"):
+        from MuonAnalysis.MuonAssociators.patMuonsWithTrigger_cff import useExistingPATMuons
+        useExistingPATMuons(process, newPatMuonTag=cms.InputTag("unpackedMuons"), addL1Info=False)
+
+        process.patTriggerFull = cms.EDProducer("PATTriggerObjectStandAloneUnpacker",
+            patTriggerObjectsStandAlone = cms.InputTag('slimmedPatTrigger'),
+            triggerResults              = cms.InputTag('TriggerResults::HLT'),
+            unpackFilterLabels          = cms.bool(True)
+        )
+        process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
+        process.patMuonsWithTriggerSequence.insert(0, process.unpackedTracksAndVertices)
+        process.load('HiAnalysis.HiOnia.unpackedMuons_cfi')
+        process.patMuonsWithTriggerSequence.insert(1, process.unpackedMuons)
+
+        # process.Bfinder.outputCommands.append('keep *Vert*_unpackedTracksAndVertices_*_*')
+        # process.Bfinder.outputCommands.append('keep patMuons_unpackedMuons_*_*')
+        # process.Bfinder.outputCommands.append('drop patMuons_patMuonsWith*_*_*')
+
+    from HLTrigger.Configuration.CustomConfigs import MassReplaceInputTag
+    process = MassReplaceInputTag(process,"offlinePrimaryVertices","unpackedTracksAndVertices")
+    process = MassReplaceInputTag(process,"generalTracks","unpackedTracksAndVertices")
