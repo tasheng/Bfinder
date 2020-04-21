@@ -7,6 +7,9 @@ import FWCore.ParameterSet.Config as cms
 def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", useL1Stage2 = True, HLTProName = "HLT"):
 	### Set TransientTrackBuilder 
 	process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+	process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
+	process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
+	process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
 
 	##Producing Gen list with SIM particles
 	process.genParticlePlusGEANT = cms.EDProducer("GenPlusSimParticleProducer",
@@ -128,7 +131,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
 	process.muonMatchHLTL2.matchedCuts = cms.string('coll("hltL2MuonCandidatesPPOnAA")') 
 
 	# Make a sequence
-	process.patMuonsWithTriggerSequence = cms.Sequence(process.patMuonsWithTriggerSequence)
+	process.patMuonSequence = cms.Sequence(process.patMuonsWithTriggerSequence)
 	
 	# Merge muons, calomuons in a single collection for T&P
 	# from RecoMuon.MuonIdentification.calomuons_cfi import calomuons;
@@ -172,7 +175,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
         HLTLabel = cms.InputTag('TriggerResults::HLT'),
         GenLabel = cms.InputTag('genParticles'),
         MuonLabel = cms.InputTag('patMuonsWithTrigger'),
-        TrackLabel = cms.InputTag('patTrackCands'),
+		TrackLabel = cms.InputTag(TrkLabel),
         # TrackLabelReco = cms.InputTag(TrkLabel),
         # MVAMapLabel = cms.InputTag(TrkLabel,"MVAVals"),
         # Dedx_Token1 = cms.InputTag('dedxHarmonic2'),
@@ -278,14 +281,14 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
 		process.Dfinder.GenLabel = cms.InputTag('genParticlePlusGEANT')
 	
 	if runOnMC and UseGenPlusSim:
-		process.patMuonsWithTriggerSequence *= process.genParticlePlusGEANT
+		process.patMuonSequence *= process.genParticlePlusGEANT
 	
-	# process.BfinderSequence = cms.Sequence(process.patMuonsWithTriggerSequence*process.TrackCandSequence*process.Bfinder)
-	process.BfinderSequence = cms.Sequence(process.patMuonsWithTriggerSequence*process.Bfinder)
+	# process.BfinderSequence = cms.Sequence(process.patMuonSequence*process.TrackCandSequence*process.Bfinder)
+	process.BfinderSequence = cms.Sequence(process.patMuonSequence*process.Bfinder)
 	# process.DfinderSequence = cms.Sequence(process.TrackCandSequence*process.Dfinder)
 	process.DfinderSequence = cms.Sequence(process.Dfinder)
-	# process.finderSequence = cms.Sequence(process.patMuonsWithTriggerSequence*process.TrackCandSequence*process.Bfinder*process.Dfinder)
-	process.finderSequence = cms.Sequence(process.patMuonsWithTriggerSequence*process.Bfinder*process.Dfinder)
+	# process.finderSequence = cms.Sequence(process.patMuonSequence*process.TrackCandSequence*process.Bfinder*process.Dfinder)
+	process.finderSequence = cms.Sequence(process.patMuonSequence*process.Bfinder*process.Dfinder)
 
 	### Temporal fix for the PAT Trigger prescale warnings.
 	if (HLTProName == 'HLT') :
@@ -311,9 +314,9 @@ def changeToMiniAOD(process):
             unpackFilterLabels          = cms.bool(True)
         )
         process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
-        process.patMuonsWithTriggerSequence.insert(0, process.unpackedTracksAndVertices)
+        process.patMuonSequence.insert(0, process.unpackedTracksAndVertices)
         process.load('HiAnalysis.HiOnia.unpackedMuons_cfi')
-        process.patMuonsWithTriggerSequence.insert(1, process.unpackedMuons)
+        process.patMuonSequence.insert(1, process.unpackedMuons)
 
         # process.Bfinder.outputCommands.append('keep *Vert*_unpackedTracksAndVertices_*_*')
         # process.Bfinder.outputCommands.append('keep patMuons_unpackedMuons_*_*')
