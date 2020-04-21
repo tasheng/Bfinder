@@ -33,7 +33,7 @@ class Dfinder : public edm::EDAnalyzer
 
         virtual void BranchOutNTk(
                 DInfoBranches &DInfo, 
-                std::vector<pat::GenericParticle> input_tracks, 
+                std::vector<pat::PackedCandidate> input_tracks, 
                 reco::Vertex thePrimaryV,
                 std::vector<int> isNeededTrackIdx,
                 std::vector<int> &D_counter,
@@ -49,7 +49,7 @@ class Dfinder : public edm::EDAnalyzer
 
         virtual void TkCombinationPermutation(
                 reco::Vertex thePrimaryV,
-                std::vector<pat::GenericParticle> input_tracks, 
+                std::vector<pat::PackedCandidate> input_tracks, 
                 std::vector<int> isNeededTrackIdx,
                 float *mass_window,
                 std::vector< std::pair<float, int> > TkMassCharge,
@@ -61,7 +61,7 @@ class Dfinder : public edm::EDAnalyzer
 
         virtual void TkCombinationResFast(
                 reco::Vertex thePrimaryV,
-                std::vector<pat::GenericParticle> input_tracks, 
+                std::vector<pat::PackedCandidate> input_tracks, 
                 std::vector<int> isNeededTrackIdx,
                 float *mass_window,
                 std::vector< std::pair<float, int> > TkMassCharge,
@@ -80,8 +80,9 @@ class Dfinder : public edm::EDAnalyzer
         std::vector<int> Dchannel_;
         //edm::InputTag hltLabel_;
         edm::EDGetTokenT< reco::GenParticleCollection > genLabel_;
-        edm::EDGetTokenT< std::vector<pat::GenericParticle> > trackLabel_;
-        edm::EDGetTokenT< std::vector<reco::Track> > trackLabelReco_;
+        // edm::EDGetTokenT< std::vector<pat::GenericParticle> > trackLabel_;
+        edm::EDGetTokenT< std::vector<pat::PackedCandidate> > trackLabel_;
+        // edm::EDGetTokenT< std::vector<reco::Track> > trackLabelReco_;
         edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoLabel_;
         edm::EDGetTokenT< reco::BeamSpot > bsLabel_;
         edm::EDGetTokenT< reco::VertexCollection > pvLabel_;
@@ -118,9 +119,6 @@ class Dfinder : public edm::EDAnalyzer
         bool doDntupleSkim_;
         bool printInfo_;
         bool readDedx_;
-        edm::EDGetTokenT<edm::ValueMap<float> > MVAMapLabel_;
-        edm::EDGetTokenT< std::vector<float> > MVAMapLabelpA_;
-        edm::InputTag MVAMapLabelInputTag_;
 
         //Special TMVA reader for 3 tracks channels, 
         std::vector<TMVA::Reader*> reader;
@@ -204,8 +202,8 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
 
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
     genLabel_           = consumes< reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("GenLabel"));
-    trackLabel_         = consumes< std::vector<pat::GenericParticle> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
-    trackLabelReco_     = consumes< std::vector<reco::Track> >(iConfig.getParameter<edm::InputTag>("TrackLabelReco"));
+    trackLabel_         = consumes< std::vector<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
+    // trackLabelReco_     = consumes< std::vector<reco::Track> >(iConfig.getParameter<edm::InputTag>("TrackLabelReco"));
     //hltLabel_           = iConfig.getParameter<edm::InputTag>("HLTLabel");
     puInfoLabel_    = consumes< std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoLabel"));
     bsLabel_        = consumes< reco::BeamSpot >(iConfig.getParameter<edm::InputTag>("BSLabel"));
@@ -239,12 +237,12 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     makeDntuple_ = iConfig.getParameter<bool>("makeDntuple");
     doDntupleSkim_ = iConfig.getParameter<bool>("doDntupleSkim");
     printInfo_ = iConfig.getParameter<bool>("printInfo");
-    readDedx_ = iConfig.getParameter<bool>("readDedx");
-    MVAMapLabelInputTag_ = iConfig.getParameter<edm::InputTag>("MVAMapLabel");
-    MVAMapLabel_ = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("MVAMapLabel"));
-    MVAMapLabelpA_ = consumes< std::vector<float> >(iConfig.getParameter<edm::InputTag>("MVAMapLabel"));
-    Dedx_Token1_ = consumes<edm::ValueMap<reco::DeDxData> >(iConfig.getParameter<edm::InputTag>("Dedx_Token1"));
-    Dedx_Token2_ = consumes<edm::ValueMap<reco::DeDxData> >(iConfig.getParameter<edm::InputTag>("Dedx_Token2"));
+    // readDedx_ = iConfig.getParameter<bool>("readDedx");
+    // MVAMapLabelInputTag_ = iConfig.getParameter<edm::InputTag>("MVAMapLabel");
+    // MVAMapLabel_ = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("MVAMapLabel"));
+    // MVAMapLabelpA_ = consumes< std::vector<float> >(iConfig.getParameter<edm::InputTag>("MVAMapLabel"));
+    // Dedx_Token1_ = consumes<edm::ValueMap<reco::DeDxData> >(iConfig.getParameter<edm::InputTag>("Dedx_Token1"));
+    // Dedx_Token2_ = consumes<edm::ValueMap<reco::DeDxData> >(iConfig.getParameter<edm::InputTag>("Dedx_Token2"));
 
     if (iConfig.exists("tktkRes_masswindowCut")) { tktkRes_masswindowCut_ = iConfig.getParameter<double>("tktkRes_masswindowCut"); }
     
@@ -344,15 +342,15 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     iSetup.get<IdealMagneticFieldRecord>().get(bField);
 
     // Change used muon and track collections
-    edm::Handle< std::vector<pat::GenericParticle> > tks;
+    edm::Handle< std::vector<pat::PackedCandidate> > tks;
     iEvent.getByToken(trackLabel_, tks);
-    edm::Handle< std::vector<reco::Track> > etracks;
-    iEvent.getByToken(trackLabelReco_, etracks);
-    if(etracks->size() != tks->size())
-      {
-        fprintf(stderr,"ERROR: number of tracks in pat::GenericParticle is different from reco::Track.\n");
-        exit(0);
-      }
+    // edm::Handle< std::vector<reco::Track> > etracks;
+    // iEvent.getByToken(trackLabelReco_, etracks);
+    // if(etracks->size() != tks->size())
+    //   {
+    //     fprintf(stderr,"ERROR: number of tracks in pat::GenericParticle is different from reco::Track.\n");
+    //     exit(0);
+    //   }
 
     //CLEAN all memory
     memset(&EvtInfo     ,0x00,sizeof(EvtInfo)   );
@@ -371,39 +369,6 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     EvtInfo.McFlag  = !iEvent.isRealData();
     //EvtInfo.hltnames->clear();
     //EvtInfo.nTrgBook= N_TRIGGER_BOOKINGS;
-
-    //Using HI HLT analysis now
-    /*
-    //HLT{{{
-    edm::Handle<TriggerResults> TrgResultsHandle; //catch triggerresults
-    bool with_TriggerResults = iEvent.getByLabel(hltLabel_,TrgResultsHandle);
-    if(!with_TriggerResults){//
-    std::cout << "Sorry there is no TriggerResult in the file" << std::endl;
-    }else{
-    //get the names of the triggers
-    const edm::TriggerNames &TrgNames = iEvent.triggerNames(*TrgResultsHandle);
-    EvtInfo.trgCount = 0;
-    for(int i=0; i< N_TRIGGER_BOOKINGS; i++){
-    unsigned int TrgIndex = TrgNames.triggerIndex(TriggerBooking[i]);
-    if (TrgIndex == TrgNames.size()) {
-    EvtInfo.trgBook[i] = -4; // The trigger path is not known in this event.
-    }else if ( !TrgResultsHandle->wasrun( TrgIndex ) ) {
-    EvtInfo.trgBook[i] = -3; // The trigger path was not included in this event.
-    }else if ( !TrgResultsHandle->accept( TrgIndex ) ) {
-    EvtInfo.trgBook[i] = -2; // The trigger path was not accepted in this event.
-    }else if (  TrgResultsHandle->error ( TrgIndex ) ) {
-    EvtInfo.trgBook[i] = -1; // The trigger path has an error in this event.
-    }else {
-    EvtInfo.trgBook[i] = +1; // It's triggered.
-    EvtInfo.trgCount++; 
-    }
-    }
-    EvtInfo.nHLT = TrgNames.size();
-    for(unsigned int i=0; i<TrgNames.size(); i++){
-    EvtInfo.hltBits[i] = (TrgResultsHandle->accept(i) == true) ? 1:0;
-    }
-    }//end(!with_TriggerResults)}}}
-    */
 
     // Handle primary vertex properties
     Vertex thePrimaryV;
@@ -538,7 +503,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         D_counter.push_back(0);
     }
 
-    std::vector<pat::GenericParticle>   input_tracks;
+    std::vector<pat::PackedCandidate>   input_tracks;
     input_tracks = *tks;
     try{
         const reco::GenParticle* genMuonPtr[MAX_MUON];
@@ -561,13 +526,17 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     std::vector<bool> isNeededTrack;// Are the tracks redundant?
                     std::vector<int> isNeededTrackIdx;
                     int PassedTrk = 0;
-                    for(std::vector<pat::GenericParticle>::const_iterator tk_it=input_tracks.begin();
+                    for(std::vector<pat::PackedCandidate>::const_iterator tk_it=input_tracks.begin();
                             tk_it != input_tracks.end(); tk_it++){
                         if(PassedTrk >= MAX_TRACK){
                             fprintf(stderr,"ERROR: number of tracks exceeds the size of array.\n");
                             break;
                         }
+
+                        // const pat::PackedCandidate & c = (*cands)[it];
+                        // reco::Track const& tk_it = it->pseudoTrack();
                         isNeededTrack.push_back(false);
+                        if(!tk_it->hasTrackDetails()) continue;
                         TrackCutLevel->Fill(0);//number of all tracks
                         TrackCutLevel->Fill(1);//
                         if (tk_it->pt()<tkPtCut_)                           continue;
@@ -577,16 +546,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         //if (fabs(tk_it->eta()) > 2.5)                       continue;
                         TrackCutLevel->Fill(4);
                         if(doTkPreCut_){
-                            if( !(tk_it->track()->quality(reco::TrackBase::qualityByName("highPurity")))) continue;
-                            //d0 analysis cuts
-                            //if(tk_it->track()->hitPattern().numberOfValidHits() < 12) continue;
-                            //if(tk_it->track()->ptError()/tk_it->track()->pt() > 0.075) continue;
-                            //if(tk_it->track()->normalizedChi2()/tk_it->track()->hitPattern().trackerLayersWithMeasurement() > 0.25) continue;
-                            //outdated selections
-                            //if (tk_it->track()->normalizedChi2()>5)             continue;
-                            //if (tk_it->p()>200 || tk_it->pt()>200)              continue;
-                            //if (tk_it->track()->hitPattern().numberOfValidStripHits()<10)continue;
-                            //if (tk_it->track()->hitPattern().numberOfValidPixelHits()<2) continue;
+                          if( !(tk_it->pseudoTrack().quality(reco::TrackBase::qualityByName("highPurity")))) continue;
                             TrackCutLevel->Fill(5);
                         }
                         isNeededTrack[tk_it-input_tracks.begin()] = true;
@@ -939,36 +899,12 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                 // TrackInfo section {{{
                 // Setup MVA
-                edm::Handle< edm::ValueMap<float> > mvaoutputAA;
-                edm::Handle< std::vector<float> > mvaoutputpA;
-                std::vector<float>   mvavector;
-                std::auto_ptr<edm::ValueMap<float> > mvaoutput(new edm::ValueMap<float>() );
-                if(MVAMapLabelInputTag_.instance() == "MVAVals") {
-                  iEvent.getByToken(MVAMapLabel_, mvaoutputAA);
-                  *mvaoutput = *mvaoutputAA;
-                }
-                if(MVAMapLabelInputTag_.instance() == "MVAValues") {
-                    iEvent.getByToken(MVAMapLabelpA_, mvaoutputpA);
-                    mvavector = *mvaoutputpA;
-                    assert(mvavector.size()==input_tracks.size());
-                    edm::ValueMap<float>::Filler filler(*mvaoutput);
-                    filler.insert(etracks, mvavector.begin(), mvavector.end());
-                    filler.fill();
-                }
+                /* Under construction !! */
 
                 // Setup Dedx
-                edm::Handle<edm::ValueMap<reco::DeDxData> > dEdxHandle1;
-                edm::ValueMap<reco::DeDxData> dEdxTrack1;
-                //edm::Handle<edm::ValueMap<reco::DeDxData> > dEdxHandle2;
-                //edm::ValueMap<reco::DeDxData> dEdxTrack2;
-                if(readDedx_) {
-                    iEvent.getByToken(Dedx_Token1_, dEdxHandle1);
-                    dEdxTrack1 = *dEdxHandle1.product();
-                    //iEvent.getByToken(Dedx_Token2_, dEdxHandle2);
-                    //dEdxTrack2 = *dEdxHandle2.product();
-                }
+                /* Under construction !! */
 
-                for(std::vector<pat::GenericParticle>::const_iterator tk_it=input_tracks.begin();
+                for(std::vector<pat::PackedCandidate>::const_iterator tk_it=input_tracks.begin();
                         tk_it != input_tracks.end() ; tk_it++){
                     int tk_hindex = int(tk_it - input_tracks.begin());
                     if(tk_hindex>=int(isNeededTrack.size())) break;
@@ -1023,51 +959,54 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     TrackInfo.pt             [TrackInfo.size] = tk_it->pt();
                     TrackInfo.eta            [TrackInfo.size] = tk_it->eta();
                     TrackInfo.phi            [TrackInfo.size] = tk_it->phi();
-                    TrackInfo.ptErr          [TrackInfo.size] = tk_it->track()->ptError();
-                    TrackInfo.etaErr         [TrackInfo.size] = tk_it->track()->etaError();
-                    TrackInfo.phiErr         [TrackInfo.size] = tk_it->track()->phiError();
+                    TrackInfo.ptErr          [TrackInfo.size] = tk_it->pseudoTrack().ptError();
+                    TrackInfo.etaErr         [TrackInfo.size] = tk_it->pseudoTrack().etaError();
+                    TrackInfo.phiErr         [TrackInfo.size] = tk_it->pseudoTrack().phiError();
                     //TrackInfo.p              [TrackInfo.size] = tk_it->p();
-                    TrackInfo.striphit       [TrackInfo.size] = tk_it->track()->hitPattern().numberOfValidStripHits();
-                    TrackInfo.pixelhit       [TrackInfo.size] = tk_it->track()->hitPattern().numberOfValidPixelHits();
-                    TrackInfo.nStripLayer    [TrackInfo.size] = tk_it->track()->hitPattern().stripLayersWithMeasurement();
-                    TrackInfo.nPixelLayer    [TrackInfo.size] = tk_it->track()->hitPattern().pixelLayersWithMeasurement();
-                    // TrackInfo.fpbarrelhit    [TrackInfo.size] = tk_it->track()->hitPattern().hasValidHitInFirstPixelBarrel();
-                    // TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->track()->hitPattern().hasValidHitInFirstPixelEndcap();
-                    TrackInfo.fpbarrelhit    [TrackInfo.size] = tk_it->track()->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel,1);
-                    TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->track()->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap,1);
-                    TrackInfo.chi2           [TrackInfo.size] = tk_it->track()->chi2();
-                    TrackInfo.ndf            [TrackInfo.size] = tk_it->track()->ndof();
-                    TrackInfo.d0             [TrackInfo.size] = tk_it->track()->d0();
-                    TrackInfo.d0error        [TrackInfo.size] = tk_it->track()->d0Error();
-                    TrackInfo.dz             [TrackInfo.size] = tk_it->track()->dz();
-                    TrackInfo.dzerror        [TrackInfo.size] = tk_it->track()->dzError();
-                    // TrackInfo.dxyPV          [TrackInfo.size] = tk_it->track()->dxy(RefVtx);
-                    // TrackInfo.dzPV           [TrackInfo.size] = tk_it->track()->dz(RefVtx);
-                    TrackInfo.dxy            [TrackInfo.size] = tk_it->track()->dxy();
-                    TrackInfo.dxyerror       [TrackInfo.size] = tk_it->track()->dxyError();
-                    TrackInfo.dz             [TrackInfo.size] = tk_it->track()->dz();
-                    TrackInfo.dzerror        [TrackInfo.size] = tk_it->track()->dzError();
-                    TrackInfo.dxy1           [TrackInfo.size] = tk_it->track()->dxy(RefVtx);
-                    TrackInfo.dxyerror1      [TrackInfo.size] = TMath::Sqrt(tk_it->track()->dxyError()*tk_it->track()->dxyError() + thePrimaryV.xError()*thePrimaryV.yError());
-                    TrackInfo.dz1            [TrackInfo.size] = tk_it->track()->dz(RefVtx);
-                    TrackInfo.dzerror1       [TrackInfo.size] = TMath::Sqrt(tk_it->track()->dzError()*tk_it->track()->dzError() + thePrimaryV.zError()*thePrimaryV.zError());
-                    TrackInfo.highPurity     [TrackInfo.size] = tk_it->track()->quality(reco::TrackBase::qualityByName("highPurity"));
+                    TrackInfo.striphit       [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().numberOfValidStripHits();
+                    TrackInfo.pixelhit       [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().numberOfValidPixelHits();
+                    TrackInfo.nStripLayer    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().stripLayersWithMeasurement();
+                    TrackInfo.nPixelLayer    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().pixelLayersWithMeasurement();
+                    // TrackInfo.fpbarrelhit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInFirstPixelBarrel();
+                    // TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInFirstPixelEndcap();
+                    TrackInfo.fpbarrelhit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel,1);
+                    TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap,1);
+                    TrackInfo.chi2           [TrackInfo.size] = tk_it->pseudoTrack().chi2();
+                    TrackInfo.ndf            [TrackInfo.size] = tk_it->pseudoTrack().ndof();
+                    TrackInfo.d0             [TrackInfo.size] = tk_it->pseudoTrack().d0();
+                    TrackInfo.d0error        [TrackInfo.size] = tk_it->pseudoTrack().d0Error();
+                    TrackInfo.dz             [TrackInfo.size] = tk_it->pseudoTrack().dz();
+                    TrackInfo.dzerror        [TrackInfo.size] = tk_it->pseudoTrack().dzError();
+                    // TrackInfo.dxyPV          [TrackInfo.size] = tk_it->pseudoTrack().dxy(RefVtx);
+                    // TrackInfo.dzPV           [TrackInfo.size] = tk_it->pseudoTrack().dz(RefVtx);
+                    TrackInfo.dxy            [TrackInfo.size] = tk_it->pseudoTrack().dxy();
+                    TrackInfo.dxyerror       [TrackInfo.size] = tk_it->pseudoTrack().dxyError();
+                    TrackInfo.dz             [TrackInfo.size] = tk_it->pseudoTrack().dz();
+                    TrackInfo.dzerror        [TrackInfo.size] = tk_it->pseudoTrack().dzError();
+                    TrackInfo.dxy1           [TrackInfo.size] = tk_it->pseudoTrack().dxy(RefVtx);
+                    TrackInfo.dxyerror1      [TrackInfo.size] = TMath::Sqrt(tk_it->pseudoTrack().dxyError()*tk_it->pseudoTrack().dxyError() + thePrimaryV.xError()*thePrimaryV.yError());
+                    TrackInfo.dz1            [TrackInfo.size] = tk_it->pseudoTrack().dz(RefVtx);
+                    TrackInfo.dzerror1       [TrackInfo.size] = TMath::Sqrt(tk_it->pseudoTrack().dzError()*tk_it->pseudoTrack().dzError() + thePrimaryV.zError()*thePrimaryV.zError());
+                    TrackInfo.highPurity     [TrackInfo.size] = tk_it->pseudoTrack().quality(reco::TrackBase::qualityByName("highPurity"));
                     TrackInfo.geninfo_index  [TrackInfo.size] = -1;//initialize for later use
-                    TrackInfo.trkMVAVal      [TrackInfo.size] = (*mvaoutput)[tk_it->track()];
-                    TrackInfo.trkAlgo        [TrackInfo.size] = tk_it->track()->algo();
-                    TrackInfo.originalTrkAlgo[TrackInfo.size] = tk_it->track()->originalAlgo();
-                    if(readDedx_) {
-                        TrackInfo.dedx           [TrackInfo.size] = dEdxTrack1[tk_it->track()].dEdx();
-                    }else 
+                    // TrackInfo.trkMVAVal      [TrackInfo.size] = (*mvaoutput)[tk_it->track()];
+                    TrackInfo.trkAlgo        [TrackInfo.size] = tk_it->pseudoTrack().algo();
+                    TrackInfo.originalTrkAlgo[TrackInfo.size] = tk_it->pseudoTrack().originalAlgo();
+                    // if(readDedx_) {
+                    //     TrackInfo.dedx           [TrackInfo.size] = dEdxTrack1[tk_it->track()].dEdx();
+                    // }else 
                         TrackInfo.dedx           [TrackInfo.size] = -1;
 
-                    if(tk_it->track().isNonnull()){
-                        for(int tq = 0; tq < reco::TrackBase::qualitySize; tq++){
-                            if (tk_it->track()->quality(static_cast<reco::TrackBase::TrackQuality>(tq))) TrackInfo.trackQuality[TrackInfo.size] += 1 << (tq);
-                        }}
+                        /* Under construction */
+                    // if(tk_it->pseudoTrack().isNonnull()){
+                    //     for(int tq = 0; tq < reco::TrackBase::qualitySize; tq++){
+                    //         if (tk_it->pseudoTrack().quality(static_cast<reco::TrackBase::TrackQuality>(tq))) TrackInfo.trackQuality[TrackInfo.size] += 1 << (tq);
+                    //     }}
 
+                    /* Under construction !!
                     if (!iEvent.isRealData() && RunOnMC_)
                         genTrackPtr [TrackInfo.size] = tk_it->genParticle();
+                    */
 
                     // Fill the same list for DInfo // original idx is Handle_idx changed to the TrackInfo idx 
                     for(unsigned int iCands=0; iCands < listOfRelativeDCand1.size(); iCands++){
@@ -1311,37 +1250,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         }
                     }
                 }
-                /*deprecated
-                //Pass handle_index to igen
-                for(int igen = 0; igen < GenInfo.size; igen++){
-                int iMo1 = GenInfo.mo1[igen];
-                int iMo2 = GenInfo.mo2[igen];
-                int iDa1 = GenInfo.da1[igen];
-                int iDa2 = GenInfo.da2[igen];
-                for(int k = 0; k < GenInfo.size; k++){
-                if (iMo1 == GenInfo.handle_index[k])
-                GenInfo.mo1[igen] = k;
-                else if (iMo2 == GenInfo.handle_index[k])
-                GenInfo.mo2[igen] = k;
-                else if (iDa1 == GenInfo.handle_index[k])
-                GenInfo.da1[igen] = k;
-                else if (iDa2 == GenInfo.handle_index[k])
-                GenInfo.da2[igen] = k;
-                }
-                //In case that GEN particles are omitted from GenInfo
-                //handle_index couldn't be the same as igen
-                //since the very first proton pair has status 3.
-                if (iMo1 == GenInfo.mo1[igen])
-                GenInfo.mo1[igen] = -1;
-                if (iMo2 == GenInfo.mo2[igen])
-                GenInfo.mo2[igen] = -1;
-                if (iDa1 == GenInfo.da1[igen])
-                GenInfo.da1[igen] = -1;
-                if (iDa2 == GenInfo.da2[igen])
-                GenInfo.da2[igen] = -1;
-                }
                 //printf("-----*****DEBUG:End of IndexToIgen\n");
-                */
                 }//isRealData}}}
         //printf("-----*****DEBUG:End of GenInfo.\n");
         //std::cout<<"Start to fill!\n";
@@ -1465,7 +1374,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     void Dfinder::TkCombinationPermutation(
             reco::Vertex thePrimaryV,
-            std::vector<pat::GenericParticle> input_tracks, 
+            std::vector<pat::PackedCandidate> input_tracks, 
             std::vector<int> isNeededTrackIdx,
             float *mass_window,
             std::vector< std::pair<float, int> > TkMassCharge,
@@ -1485,7 +1394,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         TLorentzVector v4_tk1, v4_tk2, v4_tk3, v4_tk4, v4_tk5;// all tracks
         TLorentzVector v4_Restk1, v4_Restk2, v4_Restk3, v4_Restk4, v4_Restk5;// resonance tracks
         TLorentzVector v4_NonRestk1, v4_NonRestk2, v4_NonRestk3, v4_NonRestk4, v4_NonRestk5;// non-resonance tracks, i.e., all - resonance tracks
-        //for(std::vector<pat::GenericParticle>::const_iterator tk_it1=input_tracks.begin();
+        //for(std::vector<pat::PackedCandidate>::const_iterator tk_it1=input_tracks.begin();
         //        tk_it1 != input_tracks.end() ; tk_it1++){
         for(int tk1idx = 0; tk1idx < (int)isNeededTrackIdx.size(); tk1idx++){
             v4_D.Clear(); v4_Res.Clear();
@@ -1508,7 +1417,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             v4_Res.SetPxPyPzE(v4_Restk1.Px(), v4_Restk1.Py(), v4_Restk1.Pz(), v4_Restk1.E());
             v4_NonRes.SetPxPyPzE(v4_NonRestk1.Px(), v4_NonRestk1.Py(), v4_NonRestk1.Pz(), v4_NonRestk1.E());
 
-            //for(std::vector<pat::GenericParticle>::const_iterator tk_it2=tk_it1+1;
+            //for(std::vector<pat::PackedCandidate>::const_iterator tk_it2=tk_it1+1;
             //        tk_it2 != input_tracks.end() ; tk_it2++){
             for(int tk2idx = tk1idx+1; tk2idx < (int)isNeededTrackIdx.size(); tk2idx++){
                 //tk2_hindex = int(tk_it2 - input_tracks.begin());
@@ -1550,7 +1459,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     selectedTkhidx.clear();
                     continue;
                 }
-                //for(std::vector<pat::GenericParticle>::const_iterator tk_it3=tk_it2+1;
+                //for(std::vector<pat::PackedCandidate>::const_iterator tk_it3=tk_it2+1;
                 //        tk_it3 != input_tracks.end() ; tk_it3++){
                 for(int tk3idx = tk2idx+1; tk3idx < (int)isNeededTrackIdx.size(); tk3idx++){
                     //tk3_hindex = int(tk_it3 - input_tracks.begin());
@@ -1595,7 +1504,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         selectedTkhidx.clear();
                         continue;
                     }
-                    //for(std::vector<pat::GenericParticle>::const_iterator tk_it4=tk_it3+1;
+                    //for(std::vector<pat::PackedCandidate>::const_iterator tk_it4=tk_it3+1;
                     //        tk_it4 != input_tracks.end() ; tk_it4++){
                     for(int tk4idx = tk3idx+1; tk4idx < (int)isNeededTrackIdx.size(); tk4idx++){
                         //tk4_hindex = int(tk_it4 - input_tracks.begin());
@@ -1641,7 +1550,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                             selectedTkhidx.clear();
                             continue;
                         }
-                        //for(std::vector<pat::GenericParticle>::const_iterator tk_it5=tk_it4+1;
+                        //for(std::vector<pat::PackedCandidate>::const_iterator tk_it5=tk_it4+1;
                         //        tk_it5 != input_tracks.end() ; tk_it5++){
                         for(int tk5idx = tk4idx+1; tk5idx < (int)isNeededTrackIdx.size(); tk5idx++){
                             //tk5_hindex = int(tk_it5 - input_tracks.begin());
@@ -1700,7 +1609,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
             void Dfinder::TkCombinationResFast(
                     reco::Vertex thePrimaryV,
-                    std::vector<pat::GenericParticle> input_tracks, 
+                    std::vector<pat::PackedCandidate> input_tracks, 
                     std::vector<int> isNeededTrackIdx,
                     float *mass_window,
                     std::vector< std::pair<float, int> > TkMassCharge,
@@ -1834,9 +1743,9 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                                             __Dtrk1Pt                                        = input_tracks[tk3_hindex].pt();
                                             __DRestrk1Pt                                     = input_tracks[tk1_hindex].pt();
                                             __DRestrk2Pt                                     = input_tracks[tk2_hindex].pt();
-                                            __Dtrk1Dxy_Over_Dtrk1D0Err                       = input_tracks[tk3_hindex].track()->dxy(thePrimaryV.position())/input_tracks[tk3_hindex].track()->d0Error();
-                                            __DRestrk1Dxy_Over_DRestrk1D0Err                 = input_tracks[tk1_hindex].track()->dxy(thePrimaryV.position())/input_tracks[tk1_hindex].track()->d0Error();
-                                            __DRestrk2Dxy_Over_DRestrk2D0Err                 = input_tracks[tk2_hindex].track()->dxy(thePrimaryV.position())/input_tracks[tk2_hindex].track()->d0Error();
+                                            __Dtrk1Dxy_Over_Dtrk1D0Err                       = input_tracks[tk3_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk3_hindex].pseudoTrack().d0Error();
+                                            __DRestrk1Dxy_Over_DRestrk1D0Err                 = input_tracks[tk1_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk1_hindex].pseudoTrack().d0Error();
+                                            __DRestrk2Dxy_Over_DRestrk2D0Err                 = input_tracks[tk2_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk2_hindex].pseudoTrack().d0Error();
                                             __Dtrk1Eta                                       = input_tracks[tk3_hindex].eta();
                                             __DRestrk1Eta                                    = input_tracks[tk1_hindex].eta();
                                             __DRestrk2Eta                                    = input_tracks[tk2_hindex].eta();
@@ -1969,7 +1878,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             //BranchOutNTk{{{
             void Dfinder::BranchOutNTk(//input 2~4 tracks
                     DInfoBranches &DInfo, 
-                    std::vector<pat::GenericParticle> input_tracks, 
+                    std::vector<pat::PackedCandidate> input_tracks, 
                     reco::Vertex thePrimaryV,
                     std::vector<int> isNeededTrackIdx,
                     std::vector<int> &D_counter,
@@ -2055,7 +1964,8 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         temp_vec.SetXYZM(input_tracks[selectedTkhidxSet[i][p]].px(), input_tracks[selectedTkhidxSet[i][p]].py(), input_tracks[selectedTkhidxSet[i][p]].pz(), fabs(TkMassCharge[p].first));
                         unfitted_tktk_4vec += temp_vec;
                         if(TkMassCharge[p].second==0) continue; // push resonace duaghter particle first here, other particle later
-                        reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].track(), &(*bField) );
+                        // reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].track(), &(*bField) );
+                        reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].pseudoTrack(), &(*bField) );
                         if (!tkTT.isValid()) continue;
                         tk_mass = fabs(TkMassCharge[p].first);
                         tk_sigma = Functs.getParticleSigma(tk_mass);
@@ -2096,7 +2006,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     //push back the other tracks
                     for(int p = 0; p < int(selectedTkhidxSet[0].size()); p++){        
                         if(TkMassCharge[p].second==1) continue;
-                        reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].track(), &(*bField) );
+                        reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].pseudoTrack(), &(*bField) );
                         if (!tkTT.isValid()) continue;
                         tk_mass = fabs(TkMassCharge[p].first);
                         tk_sigma = Functs.getParticleSigma(tk_mass);
