@@ -64,6 +64,8 @@ public:
   float   Ddca[MAX_XB];
   float   DlxyBS[MAX_XB];
   float   DlxyBSErr[MAX_XB];
+  float   DdthetaBScorr[MAX_XB];
+  float   DdthetaBS[MAX_XB];
   float   DMaxDoca[MAX_XB];
   float   DMaxTkPt[MAX_XB];
   float   DMinTkPt[MAX_XB];
@@ -394,6 +396,8 @@ public:
     dnt->Branch("Ddca",Ddca,"Ddca[Dsize]/F");
     dnt->Branch("DlxyBS",DlxyBS,"DlxyBS[Dsize]/F");
     dnt->Branch("DlxyBSErr",DlxyBSErr,"DlxyBSErr[Dsize]/F");
+    dnt->Branch("DdthetaBScorr",DdthetaBScorr,"DdthetaBScorr[Dsize]/F");
+    dnt->Branch("DdthetaBS",DdthetaBS,"DdthetaBS[Dsize]/F");
     dnt->Branch("DMaxDoca",DMaxDoca,"DMaxDoca[Dsize]/F");
     dnt->Branch("DMaxTkPt",DMaxTkPt,"DMaxTkPt[Dsize]/F");
     dnt->Branch("DMinTkPt",DMinTkPt,"DMinTkPt[Dsize]/F");
@@ -1295,17 +1299,27 @@ public:
     Ddca[typesize] = DInfo->svpvDistance[j]*TMath::Sin(DInfo->alpha[j]);
     //# add Ddca err & Ddca significance 
 
-    //    float r2lxyBS = (DInfo->vtxX[j]-EvtInfo->BSx+(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz) * (DInfo->vtxX[j]-EvtInfo->BSx+(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz)
-    //      + (DInfo->vtxY[j]-EvtInfo->BSy+(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz) * (DInfo->vtxY[j]-EvtInfo->BSy+(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz);
+    // float r2lxyBS = (DInfo->vtxX[j]-EvtInfo->BSx-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz) * (DInfo->vtxX[j]-EvtInfo->BSx-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz)
+    //   + (DInfo->vtxY[j]-EvtInfo->BSy-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz) * (DInfo->vtxY[j]-EvtInfo->BSy-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz);
     float r2lxyBS = (DInfo->vtxX[j]-EvtInfo->BSx-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz) * (DInfo->vtxX[j]-EvtInfo->BSx-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz)
       + (DInfo->vtxY[j]-EvtInfo->BSy-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz) * (DInfo->vtxY[j]-EvtInfo->BSy-(DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz);
     float xlxyBS = DInfo->vtxX[j]-EvtInfo->BSx - (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz;
     float ylxyBS = DInfo->vtxY[j]-EvtInfo->BSy - (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz;
-
-    // float xlxyBS = DInfo->vtxX[j]-EvtInfo->BSx + (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz;
-    // float ylxyBS = DInfo->vtxY[j]-EvtInfo->BSy + (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz;
     DlxyBS[typesize] = TMath::Sqrt(r2lxyBS);
-    DlxyBSErr[typesize] = TMath::Sqrt ((1./r2lxyBS) * ((xlxyBS*xlxyBS)*DInfo->vtxXErr[j] + (2*xlxyBS*ylxyBS)*DInfo->vtxYXErr[j] + (ylxyBS*ylxyBS)*DInfo->vtxYErr[j]) );
+    DlxyBSErr[typesize] = TMath::Sqrt( (1./r2lxyBS) * ((xlxyBS*xlxyBS)*(EvtInfo->BSWidthX*EvtInfo->BSWidthX+DInfo->vtxXErr[j]) + (2*xlxyBS*ylxyBS)*DInfo->vtxYXErr[j] + (ylxyBS*ylxyBS)*(EvtInfo->BSWidthY*EvtInfo->BSWidthY+DInfo->vtxYErr[j])) );
+    // DlxyBSErr[typesize] = TMath::Sqrt ((1./r2lxyBS) * ((xlxyBS*xlxyBS)*DInfo->vtxXErr[j] + (2*xlxyBS*ylxyBS)*DInfo->vtxYXErr[j] + (ylxyBS*ylxyBS)*DInfo->vtxYErr[j]) );
+    TVector3 svbsVec_corr;
+    svbsVec_corr.SetXYZ(DInfo->vtxX[j]-EvtInfo->BSx - (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdxdz,
+                        DInfo->vtxY[j]-EvtInfo->BSy - (DInfo->vtxZ[j]-EvtInfo->BSz)*EvtInfo->BSdydz, 0);
+    TVector3 dVec_for2D;
+    dVec_for2D.SetXYZ(DInfo->px[j], 
+                      DInfo->py[j], 0);
+    DdthetaBS[typesize] = svbsVec_corr.Angle(dVec_for2D);
+    TVector3 dVec_for2D_corr;
+    dVec_for2D_corr.SetXYZ(DInfo->px[j]+DInfo->pz[j]*EvtInfo->BSdxdz, 
+                           DInfo->py[j]+DInfo->pz[j]*EvtInfo->BSdydz, 0);
+    DdthetaBScorr[typesize] = svbsVec_corr.Angle(dVec_for2D_corr);
+
     DMaxDoca[typesize] = DInfo->MaxDoca[j];
     DisSequentialFit[typesize] = DInfo->isSequentialFit[j];
 
