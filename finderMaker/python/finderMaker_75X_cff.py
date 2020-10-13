@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 # https://github.com/CMS-HIN-dilepton/cmssw/blob/Onia_AA_10_3_X/HiAnalysis/HiOnia/python/oniaTreeAnalyzer_cff.py
 # https://github.com/CMS-HIN-dilepton/cmssw/blob/Onia_AA_10_3_X/HiAnalysis/HiOnia/test/hioniaanalyzer_PbPbPrompt_103X_DATA_cfg.py
 
-def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", useL1Stage2 = True, HLTProName = "HLT"):
+def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", GenParticleLabel = "genParticles", useL1Stage2 = True, HLTProName = "HLT"):
 	### Set TransientTrackBuilder 
 	process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 	process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
@@ -173,7 +173,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
         MuonTriggerMatchingPath = cms.vstring(""),
         MuonTriggerMatchingFilter = cms.vstring(""),
         HLTLabel = cms.InputTag('TriggerResults::HLT'),
-        GenLabel = cms.InputTag('genParticles'),
+		GenLabel = cms.InputTag(GenParticleLabel),
         MuonLabel = cms.InputTag('patMuonsWithTrigger'),
 		TrackLabel = cms.InputTag(TrkLabel),
         # TrackLabelReco = cms.InputTag(TrkLabel),
@@ -224,7 +224,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
         detailMode = cms.bool(False),
         dropUnusedTracks = cms.bool(True),
         HLTLabel = cms.InputTag('TriggerResults::HLT'),
-        GenLabel = cms.InputTag('genParticles'),
+		GenLabel = cms.InputTag(GenParticleLabel),
         # TrackLabel = cms.InputTag('patTrackCands'),
 		TrackLabel = cms.InputTag(TrkLabel),
         # TrackLabelReco = cms.InputTag(TrkLabel),
@@ -235,7 +235,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
         BSLabel = cms.InputTag("offlineBeamSpot"),
         PVLabel = cms.InputTag(VtxLabel),
         tkPtCut = cms.double(1.),#before fit
-        tkEtaCut = cms.double(2.0),#before fit
+		tkEtaCut = cms.double(10.0),#before fit
         dCutSeparating_PtVal = cms.vdouble(5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.),
         dPtCut = cms.vdouble(8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8., 8.),#before fit
         dEtaCut = cms.vdouble(1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5),#before fit, not used currently
@@ -263,11 +263,6 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
         doDntupleSkim = cms.bool(False),
         printInfo = cms.bool(True),
         # readDedx = cms.bool(True),
-        tmvaXmlFile = cms.vstring("TMVA_MLP_pp_5_7_varStage3.weights.xml"),
-        tmvaMethodName = cms.vstring("MLP method"),
-		tmvaPtInteval = cms.vdouble(5.,7.),
-        tmvaCutValue = cms.vdouble(0.0),
-        doTmvaCut = cms.bool(False),
 		codeCat = cms.int32(-1),
 	)
 	if runOnMC:

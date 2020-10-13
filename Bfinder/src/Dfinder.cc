@@ -79,11 +79,11 @@ class Dfinder : public edm::EDAnalyzer
         bool dropUnusedTracks_;
         std::vector<int> Dchannel_;
         //edm::InputTag hltLabel_;
-        edm::EDGetTokenT< reco::GenParticleCollection > genLabel_;
+        edm::EDGetTokenT< std::vector<pat::PackedGenParticle> > genLabel_;
         // edm::EDGetTokenT< std::vector<pat::GenericParticle> > trackLabel_;
         edm::EDGetTokenT< std::vector<pat::PackedCandidate> > trackLabel_;
         // edm::EDGetTokenT< std::vector<reco::Track> > trackLabelReco_;
-        edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoLabel_;
+        edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoLabel_; // !!
         edm::EDGetTokenT< reco::BeamSpot > bsLabel_;
         edm::EDGetTokenT< reco::VertexCollection > pvLabel_;
         edm::EDGetTokenT<edm::ValueMap<reco::DeDxData> > Dedx_Token1_;
@@ -120,29 +120,6 @@ class Dfinder : public edm::EDAnalyzer
         bool printInfo_;
         bool readDedx_;
 
-        //Special TMVA reader for 3 tracks channels, 
-        std::vector<TMVA::Reader*> reader;
-        std::vector<string> tmvaXmlFile_;
-        std::vector<string> tmvaMethodName_;  
-        std::vector<double> tmvaCutValue_;
-        std::vector<double> tmvaPtInteval_;
-        bool doTmvaCut_;
-        Float_t __Dtrk1Pt;
-        Float_t __DRestrk1Pt;
-        Float_t __DRestrk2Pt;
-        Float_t __Dtrk1Eta;
-        Float_t __DRestrk1Eta;
-        Float_t __DRestrk2Eta;
-        Float_t __Dtrk1Dxy_Over_Dtrk1D0Err;
-        Float_t __DRestrk1Dxy_Over_DRestrk1D0Err;
-        Float_t __DRestrk2Dxy_Over_DRestrk2D0Err;
-        Float_t __DtktkRes_unfitted_angleToTrk1;
-        Float_t __Dtrk1thetastar_uf;
-        Float_t __DRestrk1thetastar_uf;
-        Float_t __DRestrk2thetastar_uf;
-        Float_t __DtktkRes_unfitter_ptAsymToTrk1;
-        Float_t __DtktkRes_unfitted_pt;
-
         //A tag for any use at your wish
         int codeCat_;
 
@@ -170,8 +147,6 @@ class Dfinder : public edm::EDAnalyzer
         //How many channel
         static int const Nchannel = 20;
         std::vector<TH1F*> DMassCutLevel;
-        // mva values
-        std::vector<TH1F*> TMVADisVal;
 
 };//}}}
 
@@ -201,11 +176,11 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     dropUnusedTracks_ = iConfig.getParameter<bool>("dropUnusedTracks");
 
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
-    genLabel_           = consumes< reco::GenParticleCollection >(iConfig.getParameter<edm::InputTag>("GenLabel"));
+    genLabel_           = consumes< std::vector<pat::PackedGenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
     trackLabel_         = consumes< std::vector<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
     // trackLabelReco_     = consumes< std::vector<reco::Track> >(iConfig.getParameter<edm::InputTag>("TrackLabelReco"));
     //hltLabel_           = iConfig.getParameter<edm::InputTag>("HLTLabel");
-    puInfoLabel_    = consumes< std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoLabel"));
+    puInfoLabel_    = consumes< std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoLabel")); // !!
     bsLabel_        = consumes< reco::BeamSpot >(iConfig.getParameter<edm::InputTag>("BSLabel"));
     pvLabel_        = consumes< reco::VertexCollection >(iConfig.getParameter<edm::InputTag>("PVLabel"));
 
@@ -246,36 +221,6 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
 
     if (iConfig.exists("tktkRes_masswindowCut")) { tktkRes_masswindowCut_ = iConfig.getParameter<double>("tktkRes_masswindowCut"); }
     
-    //Special TMVA reader for 3 tracks channels
-    doTmvaCut_ = iConfig.getParameter<bool>("doTmvaCut");
-    if(doTmvaCut_){
-        tmvaXmlFile_ = iConfig.getParameter<std::vector<string> >("tmvaXmlFile");
-        tmvaMethodName_ = iConfig.getParameter<std::vector<string> >("tmvaMethodName");
-        tmvaCutValue_ = iConfig.getParameter<std::vector<double> >("tmvaCutValue");
-        tmvaPtInteval_ = iConfig.getParameter<std::vector<double> >("tmvaPtInteval");
-        reader.reserve(4);//reserve 4 readers, increase this if needed
-        for(int r=0; r<int(tmvaXmlFile_.size()); r++){
-            reader.push_back(new TMVA::Reader( "!Color:!Silent" ));
-            reader[r]->AddVariable("Dtrk1Pt",                                   &__Dtrk1Pt);
-            reader[r]->AddVariable("DRestrk1Pt",                                &__DRestrk1Pt);
-            reader[r]->AddVariable("DRestrk2Pt",                                &__DRestrk2Pt);
-            reader[r]->AddVariable("Dtrk1Dxy/Dtrk1D0Err",                       &__Dtrk1Dxy_Over_Dtrk1D0Err);
-            reader[r]->AddVariable("DRestrk1Dxy/DRestrk1D0Err",                 &__DRestrk1Dxy_Over_DRestrk1D0Err);
-            reader[r]->AddVariable("DRestrk2Dxy/DRestrk2D0Err",                 &__DRestrk2Dxy_Over_DRestrk2D0Err);
-            //reader[r]->AddVariable("Dtrk1Eta",                                  &__Dtrk1Eta);
-            //reader[r]->AddVariable("DRestrk1Eta",                               &__DRestrk1Eta);
-            //reader[r]->AddVariable("DRestrk2Eta",                               &__DRestrk2Eta);
-            //reader[r]->AddVariable("DtktkRes_unfitted_angleToTrk1",             &__DtktkRes_unfitted_angleToTrk1);
-            //reader[r]->AddVariable("Dtrk1thetastar_uf",                         &__Dtrk1thetastar_uf);
-            //reader[r]->AddVariable("DRestrk1thetastar_uf",                      &__DRestrk1thetastar_uf);
-            //reader[r]->AddVariable("DRestrk2thetastar_uf",                      &__DRestrk2thetastar_uf);
-            //reader[r]->AddVariable("DtktkRes_unfitter_ptAsymToTrk1",            &__DtktkRes_unfitter_ptAsymToTrk1);
-            //reader[r]->AddVariable("DtktkRes_unfitted_pt",                      &__DtktkRes_unfitted_pt);
-            reader[r]->BookMVA( tmvaMethodName_[r], tmvaXmlFile_[r]);
-            TMVADisVal.push_back(fs->make<TH1F>(Form("TMVADisVal%d",r), Form("TMVADisVal%d",r), 200, 0, 1));
-        }
-    }
-
     codeCat_ = iConfig.getParameter<int>("codeCat");
 
     TrackCutLevel= fs->make<TH1F>("TrackCutLevel", "TrackCutLevel", 10, 0, 10);
@@ -324,16 +269,6 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 std::cout<<"Unmatched input parameter vector size, EXIT"<<std::endl;
                 return;
             }
-
-    if( doTmvaCut_ &&
-            ( (tmvaXmlFile_.size() != tmvaMethodName_.size())
-              ||(tmvaXmlFile_.size() != tmvaCutValue_.size())
-              ||(tmvaXmlFile_.size() != tmvaPtInteval_.size()-1)
-            )
-      ){
-        std::cout<<"Unmatched TMVA method vector size, EXIT"<<std::endl;
-        return;
-    }
 
     //std::cout << "*************************\nReconstructing event number: " << iEvent.id() << "\n";
     using namespace edm;
@@ -476,7 +411,8 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     EvtInfo.PVchi2  = thePrimaryV.chi2();
 
     // get pile-up information
-    if (!iEvent.isRealData() && RunOnMC_){
+    // if (!iEvent.isRealData() && RunOnMC_){
+    if (false){ // !!
         edm::Handle<std::vector<PileupSummaryInfo> >  PUHandle;
         iEvent.getByToken(puInfoLabel_, PUHandle);
         std::vector<PileupSummaryInfo>::const_iterator PVI;
@@ -506,10 +442,10 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::vector<pat::PackedCandidate>   input_tracks;
     input_tracks = *tks;
     try{
-        const reco::GenParticle* genMuonPtr[MAX_MUON];
+        const pat::PackedGenParticle* genMuonPtr[MAX_MUON];
         // memset(genMuonPtr,0x00,MAX_MUON);
         memset(genMuonPtr,0x00,MAX_MUON*sizeof(genMuonPtr[0]));
-        const reco::GenParticle* genTrackPtr[MAX_TRACK];
+        const pat::PackedGenParticle* genTrackPtr[MAX_TRACK];
         // memset(genTrackPtr,0x00,MAX_GEN);
         memset(genTrackPtr,0x00,MAX_GEN*sizeof(genTrackPtr[0]));
         //standard check for validity of input data
@@ -1049,7 +985,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             //if (RunOnMC_){
             //if (1){
             //edm::Handle< std::vector<reco::GenParticle> > gens;
-            edm::Handle<reco::GenParticleCollection> gens;
+            edm::Handle<std::vector<pat::PackedGenParticle>> gens;
             iEvent.getByToken(genLabel_, gens);
 
             std::vector<const reco::Candidate *> sel_cands;
@@ -1066,7 +1002,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             GenInfo.genPVx = -99;
             GenInfo.genPVy = -99;
             GenInfo.genPVz = -99;
-            for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
+            for(std::vector<pat::PackedGenParticle>::const_iterator it_gen=gens->begin();
                     it_gen != gens->end(); it_gen++){
 
                 //pt 0 particle should be from beam. Apart from proton and neutron, they are also pointing to PV actually
@@ -1083,7 +1019,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
             //end fill gen PV
 
-            for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
+            for(std::vector<pat::PackedGenParticle>::const_iterator it_gen=gens->begin();
                     it_gen != gens->end(); it_gen++){
                 if (it_gen->status() > 2 && it_gen->status() != 8) continue;//only status 1, 2, 8(simulated)
                 if(GenInfo.size >= MAX_GEN){
@@ -1143,7 +1079,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 						abs(it_gen->pdgId()) ==2224 //delta++
                         //# check here by Rui
                    ){
-                    reco::GenParticle _deRef = (*it_gen);
+                    pat::PackedGenParticle _deRef = (*it_gen);
                     reco::Candidate* Myself = dynamic_cast<reco::Candidate*>(&_deRef);
                     //std::cout<<Myself->pdgId()<<"-----------"<<std::endl;
                     isGenSignal = (Functs.GetAncestor(Myself, 5) | Functs.GetAncestor(Myself, 4)| Functs.GetAncestor(Myself, 41));
@@ -1151,7 +1087,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }//all pi and K from b or c meson or c bayron //need to check here.!!!
 
                 if( !isGenSignal && abs(it_gen->pdgId()) > 400 ){ //should be OK to require the PID > 400
-                    reco::GenParticle _deRef = (*it_gen);
+                    pat::PackedGenParticle _deRef = (*it_gen);
                     reco::Candidate* Myself = dynamic_cast<reco::Candidate*>(&_deRef);
                     isGenSignal = Functs.GetDescendant(Myself, 4);
                 }//other particles (with pid > 400) have D meson in descendant chain
@@ -1202,7 +1138,8 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 GenInfo.mass[GenInfo.size]          = it_gen->mass();
                 GenInfo.pdgId[GenInfo.size]         = it_gen->pdgId();
                 GenInfo.status[GenInfo.size]        = it_gen->status();
-                GenInfo.collisionId[GenInfo.size]   = it_gen->collisionId();
+                // GenInfo.collisionId[GenInfo.size]   = it_gen->collisionId(); // !
+                GenInfo.collisionId[GenInfo.size]   = -1;
                 GenInfo.nMo[GenInfo.size]           = it_gen->numberOfMothers();
                 GenInfo.nDa[GenInfo.size]           = it_gen->numberOfDaughters();
                 GenInfo.vtxX[GenInfo.size]          = it_gen->vx(); //it should be the production vx of the particle, better to double check
@@ -1629,8 +1566,8 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 TLorentzVector v4_tk1, v4_tk2, v4_tk3, v4_tk4, v4_tk5;// all tracks
                 TLorentzVector v4_Restk1, v4_Restk2, v4_Restk3, v4_Restk4, v4_Restk5;// resonance tracks
                 TLorentzVector v4_NonRestk1, v4_NonRestk2, v4_NonRestk3, v4_NonRestk4, v4_NonRestk5;// non-resonance tracks, i.e., all - resonance tracks
-                TVector3 *Sumboost = new TVector3();
-                TVector3 *Sum3Vec = new TVector3();
+                // TVector3 *Sumboost = new TVector3();
+                // TVector3 *Sum3Vec = new TVector3();
 
                     
                     // cout<<"\nTkMassCharge[0] = "<<TkMassCharge[0].first<<" , "<<TkMassCharge[0].second<<endl;
@@ -1732,44 +1669,6 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                                 //if(fabs(v4_D.Eta()) > dEtaCut_[Dchannel_number-1])continue;
                                 if(fabs(v4_D.Rapidity()) > dRapidityCut_[Dchannel_number-1])continue;
                                 DMassCutLevel[Dchannel_number-1]->Fill(2);
-
-                                //Special TMVA reader for 3 tracks channels
-
-                                if(doTmvaCut_){
-                                    bool tmvaPass = true;
-                                    for(int r=0; r<int(tmvaXmlFile_.size()); r++){
-                                        if(v4_D.Pt() > tmvaPtInteval_[r] && v4_D.Pt() < tmvaPtInteval_[r+1]){
-                                            float tmvaValue = -999.;
-                                            __Dtrk1Pt                                        = input_tracks[tk3_hindex].pt();
-                                            __DRestrk1Pt                                     = input_tracks[tk1_hindex].pt();
-                                            __DRestrk2Pt                                     = input_tracks[tk2_hindex].pt();
-                                            __Dtrk1Dxy_Over_Dtrk1D0Err                       = input_tracks[tk3_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk3_hindex].pseudoTrack().d0Error();
-                                            __DRestrk1Dxy_Over_DRestrk1D0Err                 = input_tracks[tk1_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk1_hindex].pseudoTrack().d0Error();
-                                            __DRestrk2Dxy_Over_DRestrk2D0Err                 = input_tracks[tk2_hindex].pseudoTrack().dxy(thePrimaryV.position())/input_tracks[tk2_hindex].pseudoTrack().d0Error();
-                                            __Dtrk1Eta                                       = input_tracks[tk3_hindex].eta();
-                                            __DRestrk1Eta                                    = input_tracks[tk1_hindex].eta();
-                                            __DRestrk2Eta                                    = input_tracks[tk2_hindex].eta();
-                                            __DtktkRes_unfitted_angleToTrk1 = v4_Res.Angle(v4_tk3.Vect());
-                                            Sumboost->SetXYZ(v4_D.BoostVector().X(), v4_D.BoostVector().Y(), v4_D.BoostVector().Z());
-                                            Sum3Vec->SetXYZ(v4_D.Vect().X(), v4_D.Vect().Y(), v4_D.Vect().Z());
-                                            v4_tk3.Boost(-*Sumboost);
-                                            __Dtrk1thetastar_uf = v4_tk3.Angle(*Sum3Vec);
-                                            v4_tk3.SetXYZM(input_tracks[tk3_hindex].px(),input_tracks[tk3_hindex].py(),input_tracks[tk3_hindex].pz(),fabs(TkMassCharge[2].first));
-                                            v4_tk1.Boost(-*Sumboost);
-                                            __DRestrk1thetastar_uf = v4_tk1.Angle(*Sum3Vec);
-                                            v4_tk1.SetXYZM(input_tracks[tk1_hindex].px(),input_tracks[tk1_hindex].py(),input_tracks[tk1_hindex].pz(),fabs(TkMassCharge[0].first));
-                                            v4_tk2.Boost(-*Sumboost);
-                                            __DRestrk2thetastar_uf = v4_tk2.Angle(*Sum3Vec);
-                                            v4_tk2.SetXYZM(input_tracks[tk2_hindex].px(),input_tracks[tk2_hindex].py(),input_tracks[tk2_hindex].pz(),fabs(TkMassCharge[1].first));
-                                            __DtktkRes_unfitted_pt = v4_Res.Pt();
-                                            __DtktkRes_unfitter_ptAsymToTrk1 = (__DtktkRes_unfitted_pt-__Dtrk1Pt)/(__DtktkRes_unfitted_pt+__Dtrk1Pt);
-                                            tmvaValue = reader[r]->EvaluateMVA(tmvaMethodName_[r]);
-                                            TMVADisVal[r]->Fill(tmvaValue);
-                                            if(tmvaValue < tmvaCutValue_[r]) tmvaPass = false;
-                                        }
-                                    }
-                                    if(!tmvaPass) continue;
-                                }                      
 
                                 selectedTkhidx.push_back(tk1_hindex);
                                 selectedTkhidx.push_back(tk2_hindex);
