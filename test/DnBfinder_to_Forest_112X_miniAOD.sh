@@ -23,7 +23,7 @@ HIFormat = False
 UseGenPlusSim = False 
 VtxLabel = "unpackedTracksAndVertices"
 TrkLabel = "packedPFCandidates"
-GenLabel = "packedGenParticles"
+GenLabel = "prunedGenParticles"
 useL1Stage2 = True
 HLTProName = "HLT"
 from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X 
@@ -56,7 +56,7 @@ HIFormat = False
 UseGenPlusSim = False
 VtxLabel = "unpackedTracksAndVertices"
 TrkLabel = "packedPFCandidates"
-GenLabel = "packedGenParticles"
+GenLabel = "prunedGenParticles"
 useL1Stage2 = True
 HLTProName = "HLT"
 from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X

@@ -79,7 +79,7 @@ class Dfinder : public edm::EDAnalyzer
         bool dropUnusedTracks_;
         std::vector<int> Dchannel_;
         //edm::InputTag hltLabel_;
-        edm::EDGetTokenT< std::vector<pat::PackedGenParticle> > genLabel_;
+        edm::EDGetTokenT< std::vector<reco::GenParticle> > genLabel_;
         // edm::EDGetTokenT< std::vector<pat::GenericParticle> > trackLabel_;
         edm::EDGetTokenT< std::vector<pat::PackedCandidate> > trackLabel_;
         // edm::EDGetTokenT< std::vector<reco::Track> > trackLabelReco_;
@@ -176,7 +176,7 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     dropUnusedTracks_ = iConfig.getParameter<bool>("dropUnusedTracks");
 
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
-    genLabel_           = consumes< std::vector<pat::PackedGenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
+    genLabel_           = consumes< std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
     trackLabel_         = consumes< std::vector<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
     // trackLabelReco_     = consumes< std::vector<reco::Track> >(iConfig.getParameter<edm::InputTag>("TrackLabelReco"));
     //hltLabel_           = iConfig.getParameter<edm::InputTag>("HLTLabel");
@@ -442,10 +442,10 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::vector<pat::PackedCandidate>   input_tracks;
     input_tracks = *tks;
     try{
-        const pat::PackedGenParticle* genMuonPtr[MAX_MUON];
+        const reco::GenParticle* genMuonPtr[MAX_MUON];
         // memset(genMuonPtr,0x00,MAX_MUON);
         memset(genMuonPtr,0x00,MAX_MUON*sizeof(genMuonPtr[0]));
-        const pat::PackedGenParticle* genTrackPtr[MAX_TRACK];
+        const reco::GenParticle* genTrackPtr[MAX_TRACK];
         // memset(genTrackPtr,0x00,MAX_GEN);
         memset(genTrackPtr,0x00,MAX_GEN*sizeof(genTrackPtr[0]));
         //standard check for validity of input data
@@ -939,10 +939,10 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     //         if (tk_it->pseudoTrack().quality(static_cast<reco::TrackBase::TrackQuality>(tq))) TrackInfo.trackQuality[TrackInfo.size] += 1 << (tq);
                     //     }}
 
-                    /* Under construction !!
-                    if (!iEvent.isRealData() && RunOnMC_)
-                        genTrackPtr [TrackInfo.size] = tk_it->genParticle();
-                    */
+                        // Need to solve for miniAOD! --------------->
+                    // if (!iEvent.isRealData() && RunOnMC_)
+                    //     genTrackPtr[TrackInfo.size] = tk_it->genParticle();
+                    // <--------------
 
                     // Fill the same list for DInfo // original idx is Handle_idx changed to the TrackInfo idx 
                     for(unsigned int iCands=0; iCands < listOfRelativeDCand1.size(); iCands++){
@@ -985,7 +985,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             //if (RunOnMC_){
             //if (1){
             //edm::Handle< std::vector<reco::GenParticle> > gens;
-            edm::Handle<std::vector<pat::PackedGenParticle>> gens;
+            edm::Handle<std::vector<reco::GenParticle>> gens;
             iEvent.getByToken(genLabel_, gens);
 
             std::vector<const reco::Candidate *> sel_cands;
@@ -1002,7 +1002,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             GenInfo.genPVx = -99;
             GenInfo.genPVy = -99;
             GenInfo.genPVz = -99;
-            for(std::vector<pat::PackedGenParticle>::const_iterator it_gen=gens->begin();
+            for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
                     it_gen != gens->end(); it_gen++){
 
                 //pt 0 particle should be from beam. Apart from proton and neutron, they are also pointing to PV actually
@@ -1019,9 +1019,9 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
             //end fill gen PV
 
-            for(std::vector<pat::PackedGenParticle>::const_iterator it_gen=gens->begin();
+            for(std::vector<reco::GenParticle>::const_iterator it_gen=gens->begin();
                     it_gen != gens->end(); it_gen++){
-                if (it_gen->status() > 2 && it_gen->status() != 8) continue;//only status 1, 2, 8(simulated)
+                if (it_gen->status() > 2 && it_gen->status() != 8) continue;//only status 1(final state), 2(decayed), 8(simulated)
                 if(GenInfo.size >= MAX_GEN){
                     fprintf(stderr,"ERROR: number of gens exceeds the size of array.\n");
                     break;;
@@ -1079,7 +1079,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 						abs(it_gen->pdgId()) ==2224 //delta++
                         //# check here by Rui
                    ){
-                    pat::PackedGenParticle _deRef = (*it_gen);
+                    reco::GenParticle _deRef = (*it_gen);
                     reco::Candidate* Myself = dynamic_cast<reco::Candidate*>(&_deRef);
                     //std::cout<<Myself->pdgId()<<"-----------"<<std::endl;
                     isGenSignal = (Functs.GetAncestor(Myself, 5) | Functs.GetAncestor(Myself, 4)| Functs.GetAncestor(Myself, 41));
@@ -1087,7 +1087,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }//all pi and K from b or c meson or c bayron //need to check here.!!!
 
                 if( !isGenSignal && abs(it_gen->pdgId()) > 400 ){ //should be OK to require the PID > 400
-                    pat::PackedGenParticle _deRef = (*it_gen);
+                    reco::GenParticle _deRef = (*it_gen);
                     reco::Candidate* Myself = dynamic_cast<reco::Candidate*>(&_deRef);
                     isGenSignal = Functs.GetDescendant(Myself, 4);
                 }//other particles (with pid > 400) have D meson in descendant chain
