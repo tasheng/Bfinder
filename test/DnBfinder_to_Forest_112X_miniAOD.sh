@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PATHTOTEST=$CMSSW_BASE/src/HeavyIonsAnalysis/Configuration/test/
-FORESTS=(forest_miniAOD_103X_DATA forest_miniAOD_103X_DATA)
+FORESTS=(forest_miniAOD_112X_DATA forest_miniAOD_112X_MC)
 RUNONMC=(False True)
 # DIFFPATH=("process.hltanalysisReco *" "process.hltanalysis * process.runAnalyzer *")
 INFILES=(
@@ -40,6 +40,8 @@ process.Dfinder.tktkRes_svpvDistanceCut_highptD = cms.vdouble(0., 0., 0., 0., 0.
 process.Dfinder.svpvDistanceCut_lowptD = cms.vdouble(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0., 0., 0., 0., 0., 0., 2.5, 2.5)
 process.Dfinder.svpvDistanceCut_highptD = cms.vdouble(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0., 0., 0., 0., 0., 0., 2.5, 2.5)
 process.Dfinder.Dchannel = cms.vint32(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+process.Dfinder.dropUnusedTracks = cms.bool(True)
+process.Dfinder.detailMode = cms.bool(False)
 
 process.dfinder = cms.Path(process.DfinderSequence)
 
@@ -110,7 +112,8 @@ ivars.inputFiles='"'${INFILES[cc]}'"'
 ivars.parseArguments() # get and parse the command line arguments
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(ivars.inputFiles)
+    fileNames = cms.untracked.vstring(ivars.inputFiles),
+    # eventsToProcess = cms.untracked.VEventRange('"'"'1:236:29748033-1:236:29748033'"'"')
 )
 
 process.maxEvents = cms.untracked.PSet(
