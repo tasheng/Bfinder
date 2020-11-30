@@ -6,7 +6,7 @@ RUNONMC=(False True)
 # DIFFPATH=("process.hltanalysisReco *" "process.hltanalysis * process.runAnalyzer *")
 INFILES=(
     "file:/afs/cern.ch/work/w/wangj/public/HIDoubleMuonPsiPeri/HIRun2018A-04Apr2019-v1/FFA13E32-1396-E541-B151-8DEAA600EA0C.root"
-    "file:/afs/cern.ch/work/w/wangj/public/PrmtD0_TuneCP5_HydjetDrumMB_5p02TeV_pythia8/reMiniAOD_MC_PAT_PrmtD0.root"
+    "file:/afs/cern.ch/work/w/wangj/public/PrmtD0_TuneCP5_HydjetDrumMB_5p02TeV_pythia8/reMiniAOD_MC_PAT_PrmtD0_1120pre9.root"
 )
 
 cc=0
@@ -21,7 +21,8 @@ AddCaloMuon = False
 runOnMC = '${RUNONMC[cc]}' ## !!
 HIFormat = False 
 UseGenPlusSim = False 
-VtxLabel = "unpackedTracksAndVertices"
+# VtxLabel = "unpackedTracksAndVertices"
+VtxLabel = "offlineSlimmedPrimaryVerticesRecovery"
 TrkLabel = "packedPFCandidates"
 GenLabel = "prunedGenParticles"
 useL1Stage2 = True
@@ -56,7 +57,8 @@ AddCaloMuon = False
 runOnMC = '${RUNONMC[cc]}' ## !!
 HIFormat = False
 UseGenPlusSim = False
-VtxLabel = "unpackedTracksAndVertices"
+# VtxLabel = "unpackedTracksAndVertices"
+VtxLabel = "offlineSlimmedPrimaryVerticesRecovery"
 TrkLabel = "packedPFCandidates"
 GenLabel = "prunedGenParticles"
 useL1Stage2 = True
