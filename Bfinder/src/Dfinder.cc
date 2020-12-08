@@ -82,6 +82,7 @@ class Dfinder : public edm::EDAnalyzer
         edm::EDGetTokenT< std::vector<reco::GenParticle> > genLabel_;
         // edm::EDGetTokenT< std::vector<pat::GenericParticle> > trackLabel_;
         edm::EDGetTokenT< std::vector<pat::PackedCandidate> > trackLabel_;
+        edm::EDGetTokenT< std::vector<pat::PackedCandidate> > losttrackLabel_;
         // edm::EDGetTokenT< std::vector<reco::Track> > trackLabelReco_;
         edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoLabel_; // !!
         edm::EDGetTokenT< reco::BeamSpot > bsLabel_;
@@ -178,6 +179,7 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
     genLabel_           = consumes< std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
     trackLabel_         = consumes< std::vector<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
+    losttrackLabel_         = consumes< std::vector<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("lostTrackLabel"));
     // trackLabelReco_     = consumes< std::vector<reco::Track> >(iConfig.getParameter<edm::InputTag>("TrackLabelReco"));
     //hltLabel_           = iConfig.getParameter<edm::InputTag>("HLTLabel");
     puInfoLabel_    = consumes< std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoLabel")); // !!
@@ -279,6 +281,8 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     // Change used muon and track collections
     edm::Handle< std::vector<pat::PackedCandidate> > tks;
     iEvent.getByToken(trackLabel_, tks);
+    edm::Handle< std::vector<pat::PackedCandidate> > losttks;
+    iEvent.getByToken(losttrackLabel_, losttks);
     // edm::Handle< std::vector<reco::Track> > etracks;
     // iEvent.getByToken(trackLabelReco_, etracks);
     // if(etracks->size() != tks->size())
@@ -468,6 +472,9 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     std::vector<pat::PackedCandidate>   input_tracks;
     input_tracks = *tks;
+    std::vector<pat::PackedCandidate>   input_losttracks;
+    input_losttracks = *losttks;
+    input_tracks.insert(input_tracks.end(), input_losttracks.begin(), input_losttracks.end());
     try{
         // const reco::GenParticle* genMuonPtr[MAX_MUON];
         // // memset(genMuonPtr,0x00,MAX_MUON);
@@ -480,10 +487,10 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         if (0){
             if (printInfo_) std::cout << "There's no muon : " << iEvent.id() << std::endl;
         }else{
-            if (input_tracks.size() == 0){
+          if (input_tracks.size() == 0){
                 if (printInfo_) std::cout << "There's no track: " << iEvent.id() << std::endl;
             }else{
-                if (printInfo_) std::cout << "Got " << input_tracks.size() << " tracks" << std::endl;
+            if (printInfo_) std::cout << "Got " << input_tracks.size() << " (" << input_losttracks.size() << " from lostTracks) tracks" << std::endl;
                 if (input_tracks.size() > 0){
 
                     //Preselect tracks{{{
