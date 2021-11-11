@@ -4,7 +4,7 @@ import FWCore.ParameterSet.Config as cms
 # https://github.com/CMS-HIN-dilepton/cmssw/blob/Onia_AA_10_3_X/HiAnalysis/HiOnia/python/oniaTreeAnalyzer_cff.py
 # https://github.com/CMS-HIN-dilepton/cmssw/blob/Onia_AA_10_3_X/HiAnalysis/HiOnia/test/hioniaanalyzer_PbPbPrompt_103X_DATA_cfg.py
 
-def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", GenParticleLabel = "genParticles", useL1Stage2 = True, HLTProName = "HLT"):
+def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = False, UseGenPlusSim = False, VtxLabel = "hiSelectedVertex", TrkLabel = "hiGeneralTracks", TrkChi2Label = "packedPFCandidateTrackChi2", GenParticleLabel = "genParticles", useL1Stage2 = True, HLTProName = "HLT"):
 	### Set TransientTrackBuilder 
 	process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 	process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
@@ -227,6 +227,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
 		GenLabel = cms.InputTag(GenParticleLabel),
         # TrackLabel = cms.InputTag('patTrackCands'),
 		TrackLabel = cms.InputTag(TrkLabel),
+		TrackChi2Label = cms.InputTag(TrkChi2Label),
         # TrackLabelReco = cms.InputTag(TrkLabel),
         # MVAMapLabel = cms.InputTag(TrkLabel,"MVAVals"),	
         # Dedx_Token1 = cms.InputTag('dedxHarmonic2'),
