@@ -5,7 +5,7 @@ Ref: https://twiki.cern.ch/twiki/bin/view/CMS/L1HITaskForce2022#Instructions_to_
 
 ```
 cmsrel CMSSW_12_4_0
-cd CMSSW_12_4_0_pre9/src
+cd CMSSW_12_4_0/src
 cmsenv
 git cms-merge-topic CmsHI:forest_CMSSW_12_4_0
 scram b -j4

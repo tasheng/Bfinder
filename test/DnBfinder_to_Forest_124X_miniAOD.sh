@@ -1,12 +1,10 @@
 #!/bin/bash
 
 PATHTOTEST=$CMSSW_BASE/src/HeavyIonsAnalysis/Configuration/test/
-FORESTS=(forest_miniAOD_112X_DATA forest_miniAOD_112X_MC)
-RUNONMC=(False True)
-# DIFFPATH=("process.hltanalysisReco *" "process.hltanalysis * process.runAnalyzer *")
+FORESTS=(forest_miniAOD_run3_MC)
+RUNONMC=(True)
 INFILES=(
-    "file:/afs/cern.ch/work/w/wangj/public/HIDoubleMuonPsiPeri/HIRun2018A-04Apr2019-v1/FFA13E32-1396-E541-B151-8DEAA600EA0C.root"
-    "file:/afs/cern.ch/work/w/wangj/public/PrmtD0_TuneCP5_HydjetDrumMB_5p02TeV_pythia8/reMiniAOD_MC_PAT_PrmtD0_1120pre9.root"
+    "file:/afs/cern.ch/work/w/wangj/public/Pythia8_DzeroToKPi_prompt_Pthat15_TuneCP5_5020GeV_Drum5F/step3_reco.root"
 )
 
 cc=0
@@ -32,9 +30,9 @@ from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X
 finderMaker_75X(process, AddCaloMuon, runOnMC, HIFormat, UseGenPlusSim, VtxLabel, TrkLabel, TrkChi2Label, GenLabel, useL1Stage2, HLTProName)
 process.Dfinder.MVAMapLabel = cms.InputTag(TrkLabel, "MVAValues")
 process.Dfinder.makeDntuple = cms.bool(True)
-process.Dfinder.tkPtCut = cms.double(1.0) # before fit
+process.Dfinder.tkPtCut = cms.double(2.0) # before fit
 process.Dfinder.tkEtaCut = cms.double(2.4) # before fit
-process.Dfinder.dPtCut = cms.vdouble(2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0) # before fit
+process.Dfinder.dPtCut = cms.vdouble(10.0, 10.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0) # before fit
 process.Dfinder.VtxChiProbCut = cms.vdouble(0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05)
 process.Dfinder.dCutSeparating_PtVal = cms.vdouble(5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.)
 process.Dfinder.tktkRes_svpvDistanceCut_lowptD = cms.vdouble(0., 0., 0., 0., 0., 0., 0., 0., 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0., 0.)
