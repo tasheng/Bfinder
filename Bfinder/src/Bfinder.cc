@@ -63,6 +63,7 @@ class Bfinder : public edm::EDAnalyzer
  
         // ----------member data ---------------------------
         edm::ESHandle<MagneticField> bField;
+        edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> idealMagneticFieldRecordToken_;
         edm::ParameterSet theConfig;
 
         bool detailMode_;
@@ -157,6 +158,8 @@ Bfinder::Bfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     detailMode_ = iConfig.getParameter<bool>("detailMode");
     dropUnusedTracks_ = iConfig.getParameter<bool>("dropUnusedTracks");
 
+    idealMagneticFieldRecordToken_ = esConsumes();
+
     //TriggersForMatching_= iConfig.getUntrackedParameter<std::vector<std::string> >("TriggersForMatching");
     //hltLabel_           = iConfig.getParameter<edm::InputTag>("HLTLabel");
     Bchannel_= iConfig.getParameter<std::vector<int> >("Bchannel");
@@ -230,7 +233,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace edm;
     using namespace reco;
     //ESHandle<MagneticField> bField;
-    iSetup.get<IdealMagneticFieldRecord>().get(bField);
+    bField = iSetup.getHandle(idealMagneticFieldRecordToken_);
 
     // Change used muon and track collections
     edm::Handle< std::vector<pat::Muon> > muons;

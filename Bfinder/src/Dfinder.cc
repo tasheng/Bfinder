@@ -73,6 +73,7 @@ class Dfinder : public edm::EDAnalyzer
 
         // ----------member data ---------------------------
         edm::ESHandle<MagneticField> bField;
+        edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> idealMagneticFieldRecordToken_;
         edm::ParameterSet theConfig;
 
         bool detailMode_;
@@ -178,6 +179,8 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     detailMode_ = iConfig.getParameter<bool>("detailMode");
     dropUnusedTracks_ = iConfig.getParameter<bool>("dropUnusedTracks");
 
+    idealMagneticFieldRecordToken_ = esConsumes();
+
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
     genLabel_           = consumes< std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
     trackLabel_         = consumes< edm::View<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("TrackLabel"));
@@ -279,7 +282,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     using namespace edm;
     using namespace reco;
     //ESHandle<MagneticField> bField;
-    iSetup.get<IdealMagneticFieldRecord>().get(bField);
+    bField = iSetup.getHandle(idealMagneticFieldRecordToken_);
 
     // Change used muon and track collections
     // edm::Handle< std::vector<pat::PackedCandidate> > tks;
@@ -1975,7 +1978,6 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         temp_vec.SetXYZM(input_tracks[selectedTkhidxSet[i][p]].px(), input_tracks[selectedTkhidxSet[i][p]].py(), input_tracks[selectedTkhidxSet[i][p]].pz(), fabs(TkMassCharge[p].first));
                         unfitted_tktk_4vec += temp_vec;
                         if(TkMassCharge[p].second==0) continue; // push resonace duaghter particle first here, other particle later
-                        // reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].track(), &(*bField) );
                         reco::TransientTrack tkTT(input_tracks[selectedTkhidxSet[i][p]].pseudoTrack(), &(*bField) );
                         if (!tkTT.isValid()) continue;
                         tk_mass = fabs(TkMassCharge[p].first);
