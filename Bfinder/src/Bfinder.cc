@@ -414,7 +414,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         memset(genMuonPtr,0x00,MAX_MUON*sizeof(genMuonPtr[0]));
         const reco::GenParticle* genTrackPtr[MAX_TRACK];
         // memset(genTrackPtr,0x00,MAX_GEN);
-        memset(genTrackPtr,0x00,MAX_GEN*sizeof(genTrackPtr[0]));
+        memset(genTrackPtr,0x00,MAX_TRACK*sizeof(genTrackPtr[0]));
         //standard check for validity of input data
         if (input_muons.size() == 0){
             if (printInfo_) std::cout << "There's no muon : " << iEvent.id() << std::endl;
