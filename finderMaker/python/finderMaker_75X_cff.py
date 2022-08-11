@@ -91,7 +91,7 @@ def finderMaker_75X(process, AddCaloMuon = False, runOnMC = True, HIFormat = Fal
 		addMCinfo(process)
 		process.muonMatch.maxDeltaR = cms.double(0.05)
 		process.muonMatch.resolveByMatchQuality = True
-        process.muonMatch.matched = "genMuons"
+		process.muonMatch.matched = "genMuons"
 
 	changeTriggerProcessName(process, HLTProName)
 	switchOffAmbiguityResolution(process) # Switch off ambiguity resolution: allow multiple reco muons to match to the same trigger muon

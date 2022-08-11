@@ -18,7 +18,7 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"//calculate trajectory distance
 
-#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
+// #include "SimTracker/Records/interface/TrackAssociatorRecord.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 //#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
