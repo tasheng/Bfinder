@@ -9,7 +9,7 @@
 // class declaration
 //
 
-class Bfinder : public edm::EDAnalyzer
+class Bfinder : public edm::one::EDAnalyzer<edm::one::WatchRuns>
 {//{{{
     public:
         explicit Bfinder(const edm::ParameterSet&);

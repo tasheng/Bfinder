@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class Dfinder : public edm::EDAnalyzer
+class Dfinder : public edm::one::EDAnalyzer<edm::one::WatchRuns>
 {//{{{
     public:
         explicit Dfinder(const edm::ParameterSet&);
@@ -180,6 +180,7 @@ Dfinder::Dfinder(const edm::ParameterSet& iConfig):theConfig(iConfig)
     dropUnusedTracks_ = iConfig.getParameter<bool>("dropUnusedTracks");
 
     idealMagneticFieldRecordToken_ = esConsumes();
+    // idealMagneticFieldRecordToken_ = esConsumes(edm::ESInputTag("")); // ParabolicMf
 
     Dchannel_ = iConfig.getParameter<std::vector<int> >("Dchannel");
     genLabel_           = consumes< std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("GenLabel"));
