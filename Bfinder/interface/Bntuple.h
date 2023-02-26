@@ -1501,6 +1501,21 @@ public:
                       }
                   }
               }
+            else // if(abs(GenInfo->pdgId[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]])==tk1Id)
+              {
+                if(GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]>-1)
+                  {
+                    if(!twoTks)//one trk channel
+                      {
+                        mGenIdxTk1=0;
+                        if(isBId(abs(GenInfo->pdgId[GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]]]), BId))
+                          {
+                            level = 5;
+                            bGenIdxTk1=GenInfo->mo1[TrackInfo->geninfo_index[BInfo->rftk1_index[j]]];
+                          }
+                      }
+                  }
+              }
             Bgen[typesize]=level;
           }
               
