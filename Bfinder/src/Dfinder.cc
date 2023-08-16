@@ -291,7 +291,9 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     auto tks = iEvent.getHandle( trackLabel_ );
     // edm::Handle< std::vector<pat::PackedCandidate> > losttks;
     // iEvent.getByToken(losttrackLabel_, losttks);
-    auto chi2Map = iEvent.getHandle( chi2Map_ );
+    edm::Handle<edm::ValueMap<float>> chi2Handle;
+    iEvent.getByToken(chi2Map_, chi2Handle);
+    // auto chi2Map = iEvent.getHandle( chi2Map_ );
     // edm::Handle< std::vector<reco::Track> > etracks;
     // iEvent.getByToken(trackLabelReco_, etracks);
     // if(etracks->size() != tks->size())
@@ -965,8 +967,12 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     // TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInFirstPixelEndcap();
                     TrackInfo.fpbarrelhit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelBarrel,1);
                     TrackInfo.fpendcaphit    [TrackInfo.size] = tk_it->pseudoTrack().hitPattern().hasValidHitInPixelLayer(PixelSubdetector::PixelEndcap,1);
-                    // TrackInfo.chi2           [TrackInfo.size] = tk_it->pseudoTrack().chi2();                    
-                    TrackInfo.chi2           [TrackInfo.size] = (float)((*chi2Map)[ tks->ptrAt( tk_hindex ) ]) * tk_it->pseudoTrack().ndof();
+                    if (chi2Handle.isValid() && !chi2Handle.failedToGet()) {
+                      TrackInfo.chi2           [TrackInfo.size] = (float)((*chi2Handle)[ tks->ptrAt( tk_hindex ) ]) * tk_it->pseudoTrack().ndof();
+                    }
+                    else {
+                      TrackInfo.chi2           [TrackInfo.size] = tk_it->pseudoTrack().chi2();
+                    }
                     TrackInfo.ndf            [TrackInfo.size] = tk_it->pseudoTrack().ndof();
                     TrackInfo.d0             [TrackInfo.size] = tk_it->pseudoTrack().d0();
                     TrackInfo.d0error        [TrackInfo.size] = tk_it->pseudoTrack().d0Error();
