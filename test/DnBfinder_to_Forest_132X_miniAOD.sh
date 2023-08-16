@@ -1,13 +1,11 @@
 #!/bin/bash
 
 PATHTOTEST=$CMSSW_BASE/src/HeavyIonsAnalysis/Configuration/test/
-FORESTS=(forest_miniAOD_run2_DATA forest_miniAOD_run2_MC forest_miniAOD_run3_DATA forest_miniAOD_run3_MC)
-RUNONMC=(False True False True)
+FORESTS=(forest_miniAOD_run3_DATA forest_miniAOD_run3_MC)
+RUNONMC=(False True)
 INFILES=(
     "/store/hidata/HIRun2018A/HIHeavyFlavor/MINIAOD/PbPb18_MiniAODv1-v1/240000/fdf05837-6240-4773-8cd7-d889d991ba17.root"
-    "file:/afs/cern.ch/work/w/wangj/public/Pythia8_DzeroToKPi_prompt_Pthat15_TuneCP5_5020GeV_Drum5F/step3_reco.root"
-    "file:/afs/cern.ch/work/w/wangj/public/Pythia8_DzeroToKPi_prompt_Pthat15_TuneCP5_5020GeV_Drum5F/step3_reco.root"
-    "file:/afs/cern.ch/work/w/wangj/public/Pythia8_DzeroToKPi_prompt_Pthat15_TuneCP5_5020GeV_Drum5F/step3_reco.root"
+    "/store/group/phys_heavyions/dileptons/junseok/RECO_MINIAOD_MC_DsPU_forPPRef_CMSSW_13_2_0_pre1_10Jun2023_v1/Ds_TuneCP5_5p36TeV_ppref-pythia8_new/RECO_MINIAOD_MC_DsPU_forPPRef_CMSSW_13_2_0_pre1_10Jun2023_v1/230720_170204/0000/step3_RECO_MINIAODSIM_39.root"
 )
 MINIMUMTREES=0
 
@@ -34,7 +32,7 @@ from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X
 finderMaker_75X(process, AddCaloMuon, runOnMC, HIFormat, UseGenPlusSim, VtxLabel, TrkLabel, TrkChi2Label, GenLabel, useL1Stage2, HLTProName)
 process.Dfinder.MVAMapLabel = cms.InputTag(TrkLabel, "MVAValues")
 process.Dfinder.makeDntuple = cms.bool(True)
-process.Dfinder.tkPtCut = cms.double(2.0) # before fit
+process.Dfinder.tkPtCut = cms.double(5.0) # before fit
 process.Dfinder.tkEtaCut = cms.double(2.4) # before fit
 process.Dfinder.dPtCut = cms.vdouble(10.0, 10.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0) # before fit
 process.Dfinder.VtxChiProbCut = cms.vdouble(0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.05)
