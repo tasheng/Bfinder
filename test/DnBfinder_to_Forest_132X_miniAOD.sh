@@ -4,7 +4,7 @@ PATHTOTEST=$CMSSW_BASE/src/HeavyIonsAnalysis/Configuration/test/
 FORESTS=(forest_miniAOD_run3_DATA forest_miniAOD_run3_MC)
 RUNONMC=(False True)
 INFILES=(
-    "/store/hidata/HIRun2018A/HIHeavyFlavor/MINIAOD/PbPb18_MiniAODv1-v1/240000/fdf05837-6240-4773-8cd7-d889d991ba17.root"
+    "file:/eos/cms/store/group/phys_heavyions_ops/abaty/RAWPrimeChecks2023/RAWPrime/RAWPrime_Streamer_2.root"
     "root://eoscms.cern.ch//store/group/phys_heavyions/jviinika/PythiaHydjetRun3_5p36TeV_dijet_ptHat15_100kEvents_miniAOD_2023_08_30/PythiaHydjetDijetRun3/PythiaHydjetRun3_dijet_ptHat15_5p36TeV_miniAOD/230830_165931/0000/pythiaHydjet_miniAOD_11.root"
 )
 MINIMUMTREES=0
