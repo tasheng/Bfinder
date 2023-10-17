@@ -16,7 +16,7 @@ do
     cp ${PATHTOTEST}/${FOREST}.py ${PATHTOTEST}/${FOREST}_wDfinder.py
 
     echo '
-#################### D/B finder ################# 
+#################### D finder ################# 
 AddCaloMuon = False 
 runOnMC = '${RUNONMC[cc]}' ## !!
 HIFormat = False 
@@ -24,8 +24,8 @@ UseGenPlusSim = False
 # VtxLabel = "unpackedTracksAndVertices"
 VtxLabel = "offlineSlimmedPrimaryVertices"
 TrkLabel = "packedPFCandidates"
-GenLabel = "prunedGenParticles"
 TrkChi2Label = "packedPFCandidateTrackChi2"
+GenLabel = "prunedGenParticles"
 useL1Stage2 = True
 HLTProName = "HLT"
 from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X 
@@ -54,7 +54,7 @@ process.dfinder = cms.Path(process.DfinderSequence)
     cp ${PATHTOTEST}/${FOREST}.py ${PATHTOTEST}/${FOREST}_wBfinder.py
 
     echo '
-#################### D/B finder #################
+#################### B finder #################
 AddCaloMuon = False
 runOnMC = '${RUNONMC[cc]}' ## !!
 HIFormat = False
@@ -62,11 +62,12 @@ UseGenPlusSim = False
 # VtxLabel = "unpackedTracksAndVertices"
 VtxLabel = "offlineSlimmedPrimaryVertices"
 TrkLabel = "packedPFCandidates"
+TrkChi2Label = "packedPFCandidateTrackChi2"
 GenLabel = "prunedGenParticles"
 useL1Stage2 = True
 HLTProName = "HLT"
 from Bfinder.finderMaker.finderMaker_75X_cff import finderMaker_75X
-finderMaker_75X(process, AddCaloMuon, runOnMC, HIFormat, UseGenPlusSim, VtxLabel, TrkLabel, GenLabel, useL1Stage2, HLTProName)
+finderMaker_75X(process, AddCaloMuon, runOnMC, HIFormat, UseGenPlusSim, VtxLabel, TrkLabel, TrkChi2Label, GenLabel, useL1Stage2, HLTProName)
 
 process.Bfinder.MVAMapLabel = cms.InputTag(TrkLabel,"MVAValues")
 process.Bfinder.makeBntuple = cms.bool(True)
@@ -85,6 +86,7 @@ process.Bfinder.MuonTriggerMatchingFilter = cms.vstring(
     "hltL3f0L3Mu0L2Mu0DR3p5FilteredNHitQ10M1to5")
 process.BfinderSequence.insert(0, process.unpackedMuons)
 process.BfinderSequence.insert(0, process.unpackedTracksAndVertices)
+# process.unpackedMuons.muonSelectors = cms.vstring() # uncomment for pp
 
 process.p = cms.Path(process.BfinderSequence)
 ' >> ${PATHTOTEST}/${FOREST}_wBfinder.py
