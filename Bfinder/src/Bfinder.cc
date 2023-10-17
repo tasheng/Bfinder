@@ -436,7 +436,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                             fprintf(stderr,"ERROR: number of muons exceeds the size of array.\n");
                             break;//exit(0);
                         }
- 
+
                         //Muon cut level
                         MuonCutLevel->Fill(0);
                         if (!(mu_it->isTrackerMuon() || mu_it->isGlobalMuon())) ;
@@ -576,13 +576,11 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                             MuonInfo.StandAloneMuon_dz             [MuonInfo.size] = trk.dz();
                             MuonInfo.StandAloneMuon_dzPV           [MuonInfo.size] = trk.dz(RefVtx);
                             MuonInfo.StandAloneMuon_dxyPV          [MuonInfo.size] = trk.dxy(RefVtx);
-                            //std::cout<<"sta pt: "<<trk.pt()<<std::endl; std::cout<<"pt: "<<mu_it->pt()<<std::endl;
                         }
 
                         MuonInfo.outerTrackisNonnull[MuonInfo.size] = mu_it->outerTrack().isNonnull();
                         MuonInfo.innerTrackisNonnull[MuonInfo.size] = mu_it->innerTrack().isNonnull();
                         //Muon inner track info.
-                        
                         if(mu_it->innerTrack().isNonnull()){
                             //Muon inner track track quality
                             //enum TrackQuality { undefQuality = -1, loose = 0, tight = 1, highPurity = 2, confirmed = 3, goodIterative = 4, looseSetWithPV = 5, highPuritySetWithPV = 6, qualitySize = 7}
@@ -666,7 +664,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         MuonInfo.size++;
                     }//end of MuonInfo}}}
                     //std::cout<<"PassedMuon: "<<PassedMuon<<std::endl;
-                    //printf("-----*****DEBUG:End of MuonInfo.\n");
+                    // printf("-----*****DEBUG:End of MuonInfo.\n");
 
                     //Preselect tracks{{{
                     std::vector<bool> isNeededTrack;// Are the tracks redundant?
@@ -679,7 +677,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         bool isMuonTrack = false; //remove muon track
                         for(std::vector<pat::Muon>::iterator it=input_muons.begin() ; 
                             it != input_muons.end(); it++){
-                            // if (!it->track().isNonnull())                   continue;
+                            if (!it->track().isNonnull())                   continue;
                             if((it->type()|(1<<4))==(1<<4)) continue;//Don't clean track w.r.t. calo muon 
                             if (fabs(tk_it->pt() -it->track()->pt() )<0.00001 &&
                                 fabs(tk_it->eta()-it->track()->eta())<0.00001 &&
@@ -732,7 +730,7 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                         //Get the corrisponding index in MuonInfo
                         mu1_index ++;
                         if (mu_it1->charge()<0) continue;
-                        
+
                         int mu2_index = -1;
                         int mu2_hindex = -1; 
                         for(std::vector<pat::Muon>::const_iterator mu_it2=input_muons.begin();
@@ -749,16 +747,16 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                                 }
                             }
                             if (!gogogo) continue;
-                            mu2_index ++;   
+                            mu2_index ++;
                             if (mu_it2->charge()>0) continue;
                             XbujCutLevel->Fill(0);
-                            
+
                             TLorentzVector v4_mu1,v4_mu2;
                             v4_mu1.SetPtEtaPhiM(mu_it1->pt(),mu_it1->eta(),mu_it1->phi(),MUON_MASS);
                             v4_mu2.SetPtEtaPhiM(mu_it2->pt(),mu_it2->eta(),mu_it2->phi(),MUON_MASS);
                             if (fabs((v4_mu1+v4_mu2).Mag()-JPSI_MASS)>0.4) continue;
                             if((v4_mu1+v4_mu2).Pt()<jpsiPtCut_)continue;
-    
+
                             //Fit 2 muon
                             reco::TransientTrack muonPTT(mu_it1->track(), &(*bField) );
                             reco::TransientTrack muonMTT(mu_it2->track(), &(*bField) );
@@ -766,9 +764,10 @@ void Bfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                             if(!muonMTT.isValid()) continue;
                             XbujCutLevel->Fill(1);
     
-                            const reco::Muon* rmu1 = dynamic_cast<const reco::Muon * >(mu_it1->originalObject());
-                            const reco::Muon* rmu2 = dynamic_cast<const reco::Muon * >(mu_it2->originalObject());
-                            if(muon::overlap(*rmu1, *rmu2)) continue;
+                            // const reco::Muon* rmu1 = dynamic_cast<const reco::Muon * >(mu_it1->originalObject());
+                            // const reco::Muon* rmu2 = dynamic_cast<const reco::Muon * >(mu_it2->originalObject());
+                            // std::cout<<rmu1<<", "<<rmu2<<std::endl;
+                            // if(muon::overlap(*rmu1, *rmu2)) continue;
                             XbujCutLevel->Fill(2);
     
                             KinematicParticleFactoryFromTransientTrack pFactory;
