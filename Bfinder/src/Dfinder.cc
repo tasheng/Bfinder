@@ -1189,6 +1189,7 @@ void Dfinder::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 if (
 						abs(int(it_gen->pdgId()/100) % 100) == 3  ||//s menson  //# ex k+k-, also phi
 						abs(it_gen->pdgId()) == 111 || //pi0
+						abs(it_gen->pdgId()) == 22 || //gamma
 						abs(it_gen->pdgId()) == 211 ||//pi+
 						abs(it_gen->pdgId()) == 2212  ||//proton
 						abs(it_gen->pdgId()) == 321 || //K+ actually, I DO NOT need to add this,s meson is in the list
