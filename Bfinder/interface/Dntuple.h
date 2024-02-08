@@ -2819,9 +2819,10 @@ public:
                 DgenIndex[typesize] = dGenIdxRes;
                 if((DInfo->type[j]==1||DInfo->type[j]==2)&&GenInfo->nDa[DgenIndex[typesize]]>2) {
                   Dgen[typesize]=41000;
-                  if (GenInfo->da3[DgenIndex[typesize]] == 111) {
+                  int pdgID_da3 = GenInfo->pdgId[GenInfo->da3[DgenIndex[typesize]]];
+                  if (pdgID_da3 == 111) {
                     Dgen[typesize]=41111;
-                  } else if (GenInfo->da3[DgenIndex[typesize]] == 22) {
+                  } else if (pdgID_da3 == 22) {
                     Dgen[typesize]=41022;
                   }
                 }
