@@ -2817,7 +2817,14 @@ public:
             else
               {
                 DgenIndex[typesize] = dGenIdxRes;
-                if((DInfo->type[j]==1||DInfo->type[j]==2)&&GenInfo->nDa[DgenIndex[typesize]]>2) Dgen[typesize]=41000;
+                if((DInfo->type[j]==1||DInfo->type[j]==2)&&GenInfo->nDa[DgenIndex[typesize]]>2) {
+                  Dgen[typesize]=41000;
+                  if (GenInfo->da3[DgenIndex[typesize]] == 111) {
+                    Dgen[typesize]=41111;
+                  } else if (GenInfo->da3[DgenIndex[typesize]] == 22) {
+                    Dgen[typesize]=41022;
+                  }
+                }
                 DgennDa[typesize] = GenInfo->nDa[DgenIndex[typesize]];
                 DgenMass[typesize] = GenInfo->mass[DgenIndex[typesize]];
                 Dgenpt[typesize] = GenInfo->pt[DgenIndex[typesize]];
