@@ -2817,17 +2817,42 @@ public:
             else
               {
                 DgenIndex[typesize] = dGenIdxRes;
-                if((DInfo->type[j]==1||DInfo->type[j]==2)&&GenInfo->nDa[DgenIndex[typesize]]>2) {
-                  Dgen[typesize]=41000;
-                  int pdgID_da3 = GenInfo->pdgId[GenInfo->da3[DgenIndex[typesize]]];
-                  int pdgID_da4 = GenInfo->pdgId[GenInfo->da4[DgenIndex[typesize]]];
-                  if (pdgID_da3 == 111) {
-                    Dgen[typesize]=41111;
-                  } else if (pdgID_da3 == 22 && pdgID_da4 == 22) {
-                    Dgen[typesize]=41044;
-                  } else if (pdgID_da3 == 22) {
-                    Dgen[typesize]=41022;
-                  }
+                if((DInfo->type[j]==1||DInfo->type[j]==2)&&GenInfo->nDa[DgenIndex[typesize]]>2)
+                  {
+                    Dgen[typesize]=41000;
+                    int pdgID_da3 = GenInfo->pdgId[GenInfo->da3[DgenIndex[typesize]]];
+                    int pdgID_da4 = GenInfo->pdgId[GenInfo->da4[DgenIndex[typesize]]];
+                    bool track1MatchHypo1 = TMath::Abs(GenInfo->pdgId[TrackInfo->geninfo_index[DInfo->rftk1_index[j]]])==findPdgid(DInfo->rftk1_MassHypo[j]);
+                    bool track2MatchHypo2 = TMath::Abs(GenInfo->pdgId[TrackInfo->geninfo_index[DInfo->rftk2_index[j]]])==findPdgid(DInfo->rftk2_MassHypo[j]);
+                    bool track2MatchHypo1 = TMath::Abs(GenInfo->pdgId[TrackInfo->geninfo_index[DInfo->rftk2_index[j]]])==findPdgid(DInfo->rftk1_MassHypo[j]);
+                    bool track1MatchHypo2 = TMath::Abs(GenInfo->pdgId[TrackInfo->geninfo_index[DInfo->rftk1_index[j]]])==findPdgid(DInfo->rftk2_MassHypo[j]);
+                    if (pdgID_da3 == 111) {
+                      Dgen[typesize]=41111;
+                    }
+                    // regular mass hypothesis
+                    if (track1MatchHypo1 && track2MatchHypo2)
+                      {
+                        if (pdgID_da3 == 22 && pdgID_da4 == 22)
+                          {
+                            Dgen[typesize]=41044;
+                          }
+                        else if (pdgID_da3 == 22)
+                          {
+                            Dgen[typesize]=41022;
+                          }
+                      }
+                    // swapped mass hypothesis
+                    else if (track2MatchHypo1 && track1MatchHypo2)
+                      {
+                        if (pdgID_da3 == 22 && pdgID_da4 == 22)
+                          {
+                            Dgen[typesize]=41144;
+                          }
+                        else if (pdgID_da3 == 22)
+                          {
+                            Dgen[typesize]=41122;
+                          }
+                      }
                 }
                 DgennDa[typesize] = GenInfo->nDa[DgenIndex[typesize]];
                 DgenMass[typesize] = GenInfo->mass[DgenIndex[typesize]];
