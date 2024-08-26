@@ -683,6 +683,7 @@ public:
   float   GPVy;
   float   GPVz;
   int     Gsize;
+  int     Gindex[MAX_GEN]; // index referenced in ntDkpi
   float   Gy[MAX_GEN];
   float   Geta[MAX_GEN];
   float   Gphi[MAX_GEN];
@@ -771,6 +772,7 @@ public:
     nt->Branch("GPVy",&GPVy);
     nt->Branch("GPVz",&GPVz);
     nt->Branch("Gsize",&Gsize);
+    nt->Branch("Gindex",Gindex,"Gindex[Gsize]/I");
     nt->Branch("Gy",Gy,"Gy[Gsize]/F");
     nt->Branch("Geta",Geta,"Geta[Gsize]/F");
     nt->Branch("Gphi",Gphi,"Gphi[Gsize]/F");
@@ -946,6 +948,7 @@ public:
            TMath::Abs(GenInfo->pdgId[j])!=DSTAR_PDGID&& 
            TMath::Abs(GenInfo->pdgId[j])!=BPLUS_PDGID&&gskim) continue;
         Gsize = gsize+1;
+        Gindex[gsize] = j;
         Gpt[gsize] = GenInfo->pt[j];
         Gmass[gsize] = GenInfo->mass[j];
         Geta[gsize] = GenInfo->eta[j];
